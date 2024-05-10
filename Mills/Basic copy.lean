@@ -494,18 +494,6 @@ lemma p'pos (n : ℕ) : 0 < n → 0 < p' n := by intro h; linarith [pgt1' n h]
 
 lemma ppos (n : ℕ) : 0 < n → 0 < p n := by intro h; linarith [pgt1 n h]
 
-lemma not_prime (n : ℕ) : n > 1 → ¬Nat.Prime ((n + 1) ^ 3 - 1) := by
-  intro ngt1
-  have h' : (n + 1) ^ 3 - 1 = n * (n ^ 2 + 3 * n + 3) := by
-    ring_nf
-    calc
-      1 + n * 3 + n ^ 2 * 3 + n ^ 3 - 1 = 1 + (n * 3 + n ^ 2 * 3 + n ^ 3) - 1 := by rw [add_assoc, add_assoc, add_assoc]
-      _ = n * 3 + n ^ 2 * 3 + n ^ 3 := by apply Nat.add_sub_self_left
-  rw [h']
-  apply Nat.not_prime_mul (by linarith)
-  have : n ^ 2 + 3 * n + 3 > 1 := by nlinarith
-  linarith
-
 lemma lem6 : ∀ k : ℕ, 0 < k → (p' k) ^ ((Nat.cast : ℕ → ℝ) 3) ≤ p' (k + 1) ∧ p' (k + 1) < ((p' k) + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
   intro k hk
   have h₀ : p' k ≤ A ^ (3 ^ k) := Nat.floor_le (A_pow_nonneg (3 ^ k))
@@ -567,23 +555,6 @@ lemma lem6 : ∀ k : ℕ, 0 < k → (p' k) ^ ((Nat.cast : ℕ → ℝ) 3) ≤ p'
     apply hh₀ (A ^ 3 ^ (k + 1)) (Nat.pow (p k + 1) 3) h₄
     apply A_pow_nonneg
     simp
-  have h₆ : ¬Nat.Prime ((p k + 1) ^ 3 - 1) := not_prime (p k) (pgt1 k hk)
-  have h₇ : (p k + 1) ^ 3 - 1 ≠ p (k + 1) := by
-    intro h
-    rw [h] at h₆
-    have : Nat.Prime (p (k + 1)) := prime_seq' (k + 1) (by linarith [hk])
-    contradiction
-  have h₈ : p' (k + 1) < (p' k + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
-    have hh : p' (k + 1) ≠ (p' k + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
-      have hh₁ : (Nat.cast : ℕ → ℝ) ((p k + 1) ^ 3 - 1) ≠ (Nat.cast : ℕ → ℝ) (p (k + 1)) := by
-        by_contra h
-        apply h₇
-        apply (Natcast_inj _ _).1 h
-      have hh₂ : (Nat.cast : ℕ → ℝ) (p (k + 1)) = p' (k + 1) := by rw [p']
-      have hh₃ : (Nat.cast : ℕ → ℝ) ((p k + 1) ^ 3 - 1) = (p' k + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by rw [Real.rpow_natCast]; rw [p']; simp
-      rw [← hh₂, ← hh₃]
-      exact hh₁.symm
-    apply lt_of_le_of_ne h₅ hh
   exact ⟨h₃, h₈⟩
 
 -- qを0から作っておいて、定理の中で平行移動する？q' n = q (k + n)みたいな。
@@ -794,24 +765,6 @@ lemma prop5' : ∃ k₀ > 1, ∀ k, k₀ ≤ k → p' k ^ (3 : ℝ) ≤ p' (k + 
   rcases prop5 with ⟨k₀, h⟩
   exact ⟨k₀ + 2, ⟨(by norm_num), fun k hk ↦ h k (by linarith)⟩⟩
 
-lemma lem7' (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ a / 3 + 1 := by
-  rw [← sub_le_iff_le_add]
-  let f : ℝ → ℝ := fun x ↦ (1 + x) ^ ((1 : ℝ) / 3)
-  let f' : ℝ → ℝ := fun x ↦ 1 * (1 / 3) * (1 + x) ^ ((1 : ℝ) / 3 - 1)
-  have h : ContinuousOn f (Set.Icc 0 a) := by
-    apply ContinuousOn.rpow_const (Continuous.continuousOn (continuous_add_left 1)) (fun x _ ↦ Or.inr (by norm_num))
-  have h' (x : ℝ) (hx : x ∈ Set.Ioo 0 a) : HasDerivAt f (f' x) x := by
-    have hx' : (fun x ↦ 1 + x) x ≠ 0 ∨ (1 : ℝ) ≤ ((1 : ℝ) / 3) := by left; simp; linarith [hx.left]
-    apply HasDerivAt.rpow_const (HasDerivAt.const_add 1 (hasDerivAt_id x)) hx'
-  rcases (exists_hasDerivAt_eq_slope f f' apos h h') with ⟨c, hc₁, hc₂⟩
-  calc
-    (1 + a) ^ ((1 : ℝ) / 3) - 1 = f a - f 0 := by dsimp [f]; simp
-    _ = f' c * a := by field_simp [hc₂]
-    _ = (1 + c) ^ (-(2 : ℝ) / 3) * a / 3 := by dsimp [f']; ring_nf
-    _ ≤ a / 3 := by
-      rw [div_le_div_right (by norm_num), mul_le_iff_le_one_left apos]
-      apply Real.rpow_le_one_of_one_le_of_nonpos (by linarith [hc₁.left]) (by linarith)
-
 --似たようなことをやってる
 lemma lem7'''' (k : ℕ) : (p' 1) ^ (((Nat.cast : ℕ → ℝ) 3) ^ k) ≤ p' (k + 1) := by
   induction k with
@@ -831,23 +784,6 @@ lemma lem7'''' (k : ℕ) : (p' 1) ^ (((Nat.cast : ℕ → ℝ) 3) ^ k) ≤ p' (k
         exact ih
       _ ≤ p' (k + 2) := (lem6 (k + 1) (by norm_num)).left
       _ = p' (Nat.succ k + 1) := by simp
-
--- 似たようなことをやってる
-lemma lem7''''' (x : ℝ) (xgt1 : 1 < x) : x ^ (3 : ℝ) + x ^ (3 * θ) + 1 ≤ x ^ (3 : ℝ) * (1 + 2 * x ^ (3 * (θ - 1))) := by
-  ring_nf
-  rw [add_comm 1 _, add_assoc]
-  apply add_le_add_left _ (x ^ 3)
-  rw [mul_comm (x ^ 3) _, ← Real.rpow_add]
-  simp
-  have : (2 : ℝ) = 1 + 1 := by norm_num
-  rw [this, mul_add]
-  simp
-  rw [θ]
-  ring_nf
-  have : (1 : ℝ) = 1 ^ ((63 : ℝ) / 40) := by norm_num
-  rw [this]
-  apply Real.rpow_le_rpow (by norm_num) (by apply le_of_lt xgt1) (by norm_num)
-  linarith
 
 lemma floor_lt_succ (x y : ℝ) (h : Nat.floor x ≤ y) : x ≤ y + 1 := by
   calc
