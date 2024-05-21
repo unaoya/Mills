@@ -19,21 +19,9 @@ open Filter Topology NNReal
 
 -- 一般的な設定でできる不等式は先に証明しておく
 
--- 3 ^ n のところも型をきちんと決めておいたほうがいいかも
--- 3 ^ n なのか 3 ^ n.valなのか
-lemma Mills_seq_ge_2 (x : ℝ≥0) (n : ℕ+) (h : Mills x) : 2 ≤ Mills_seq x n := (Nat.prime_def_lt.1 (h.right n)).1
-
 lemma hfloor (n : ℕ) (x : ℝ) (h : n ≤ Nat.floor x) (xpos : 0 ≤ x) : n ≤ x := by calc
   (n : ℝ) ≤ Nat.floor x := by sorry --apply (nat_real_le n _).2 h
   _ ≤ x := by apply Nat.floor_le xpos
-
-def Mills_lb (x : ℝ≥0) (h : Mills x) : 2 ≤ x.pnpow 3 := by
-  have h₁ : 2 ≤ Mills_seq x 1 := Mills_seq_ge_2 x 1 h
-  dsimp [Mills_seq] at h₁
-  have h₂ : Nat.floor (x.pnpow 3) ≤ x.pnpow 3 := by apply Nat.floor_le; simp
-  simp at h₁
-  sorry
-
 
 lemma Mills_not_nat (A : ℝ≥0) (h : Mills A) : ∀ n : ℕ, A ≠ n := by
   intro n hn

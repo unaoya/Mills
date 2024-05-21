@@ -24,3 +24,16 @@ lemma aux_ineq_in_thm3 (x : ℝ≥0) (xgt1 : 1 < x.val) : x.rpow 3 + x.rpow (3 *
   have h₂ (x : ℝ) (h : 1 < x) : x ^ 3 + x ^ 2 < (x + 1) ^ 3 - 1 := by nlinarith
   have h₃ : x.rpow 3 + x.rpow (3 * θ).toReal < (x + 1).rpow 3 - 1 := by sorry
   exact h₃
+
+theorem exists_Mills : ∃ A : ℝ≥0, Mills A := by sorry
+/-
+  have : 1 < pp 1 := by rw [pp]; linarith [(pp' 1).property, BHP_const_nat_ge2]
+  use (left_lim pp)
+  constructor
+  · exact (by linarith [(left_gt_1 pp this), (left_le_sup pp (fun n ↦(hpp n).right.right.left) 1)])
+  · intro k h
+    rw [left_floor_eq_seq pp (fun n ↦ (hpp n).left) (fun n ↦ (hpp n).right.right.left) k, ← Nat.succ_pred_eq_of_pos h]
+    exact (hpp k.pred).right.right.right
+-/
+
+theorem W_nonempty : W.Nonempty := by sorry

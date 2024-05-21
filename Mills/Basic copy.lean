@@ -358,31 +358,6 @@ lemma left_floor_eq_seq (n : ℕ) : Nat.floor ((left_lim seq) ^ (3 ^ n)) = seq n
 
 end
 
-theorem exists_Mills : ∃ A : ℝ, Mills A := by
-  have : 1 < pp 1 := by rw [pp]; linarith [(pp' 1).property, BHP_const_nat_ge2]
-  use (left_lim pp)
-  constructor
-  · exact (by linarith [(left_gt_1 pp this), (left_le_sup pp (fun n ↦(hpp n).right.right.left) 1)])
-  · intro k h
-    rw [left_floor_eq_seq pp (fun n ↦ (hpp n).left) (fun n ↦ (hpp n).right.right.left) k, ← Nat.succ_pred_eq_of_pos h]
-    exact (hpp k.pred).right.right.right
-
-def W := {x | Mills x}
-
-noncomputable def A : ℝ := sInf W
-
-lemma hh₁ : IsGLB W (sInf W) := Real.is_glb_sInf W exists_Mills ⟨1, fun _ ha ↦ le_of_lt ha.1⟩
-
-lemma A_lb : ∀ B ∈ W, A ≤ B := fun _ hB ↦ hh₁.left hB
-
--- Wのinfが1より大きいことを示す
-lemma Mills_gt_one : 1 < A := by
-  calc
-    1 < 2 ^ ((1 : ℝ) / 3) := (lt_cubic 1 2 (by norm_num) (by norm_num)).2 (by norm_num)
-    _ ≤ A := by
-      have h₀ : ∀ b ∈ W, 2 ^ ((1 : ℝ) / 3) ≤ b := fun b hb ↦ Mills_lb b hb
-      exact (mem_upperBounds.1 hh₁.2) (2 ^ (1 / 3)) (mem_lowerBounds.2 h₀)
-
 lemma A_pow_nonneg (n : ℕ) : 0 ≤ A ^ n := by rw [← Real.rpow_natCast]; apply Real.rpow_nonneg (by linarith [Mills_gt_one])
 
 lemma A_rpow_nonneg (x : ℝ) : 0 ≤ A ^ x := by apply Real.rpow_nonneg (by linarith [Mills_gt_one])
