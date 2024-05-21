@@ -37,6 +37,7 @@ lemma Mills_not_nat (A : ℝ≥0) (h : Mills A) : ∀ n : ℕ, A ≠ n := by
 lemma nonneg_int_is_nat (n : ℤ) (h : 0 ≤ n) : ∃ m : ℕ, n = m := by -- 型の合わせ方は明示する？
   sorry
 
+/-
 lemma nat_pos (r : ℝ≥0) (h : 1 < r) (n : ℤ) (hn : n = r) : n ∈ Set.range Nat.cast := by
   rw [← hn] at h
   apply Int.cast_lt.mp at h
@@ -51,7 +52,6 @@ lemma nat_pos (r : ℝ≥0) (h : 1 < r) (n : ℤ) (hn : n = r) : n ∈ Set.range
 lemma Mills_not_int (A : ℝ≥0) (h : Mills A) : ∀ n : ℤ, A.toReal ≠ n := by
   intro n hn
   have h₁ : 1 < n := by sorry
-
   rcases (nat_pos A h.left n hn) with ⟨m, hm⟩
   have ⟨h₁, _⟩ := h
   rw [← NNReal.one_lt_coe] at h₁
@@ -111,3 +111,4 @@ theorem Mills_irrational : Irrational A := by
       _ = |A ^ (3 : ℝ) ^ k - p' k| := by rw [p'eqp''', p''', ← Real.rpow_natCast]
       _ ≤ Real.exp (-γ * 3 ^ k) := h₃ k (le_max_right K k₁)
   linarith
+-/

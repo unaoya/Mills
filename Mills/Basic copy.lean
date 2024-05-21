@@ -356,8 +356,8 @@ lemma left_floor_eq_seq (n : ℕ) : Nat.floor ((left_lim seq) ^ (3 ^ n)) = seq n
     rw [← Real.rpow_natCast]
     apply Real.rpow_nonneg (left_lim_nonneg seq h')
 
-end
 
+/-
 lemma A_pow_nonneg (n : ℕ) : 0 ≤ A ^ n := by rw [← Real.rpow_natCast]; apply Real.rpow_nonneg (by linarith [Mills_gt_one])
 
 lemma A_rpow_nonneg (x : ℝ) : 0 ≤ A ^ x := by apply Real.rpow_nonneg (by linarith [Mills_gt_one])
@@ -960,3 +960,4 @@ theorem Mills_irrational : Irrational A := by
       _ = |A ^ (3 : ℝ) ^ k - p' k| := by rw [p'eqp''', p''', ← Real.rpow_natCast]
       _ ≤ Real.exp (-γ * 3 ^ k) := h₃ k (le_max_right K k₁)
   linarith
+-/

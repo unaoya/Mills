@@ -45,5 +45,7 @@ lemma aux_ineq_in_lem7 (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ 
       rw [div_le_div_right (by norm_num), mul_le_iff_le_one_left apos]
       apply Real.rpow_le_one_of_one_le_of_nonpos (by linarith [hc₁.left]) (by linarith)
 
+/-
 -- k₁の条件は除いても強くなるはず（書き換えも形式化したほうがいい）
 lemma lem7 : ∃ γ : ℝ≥0, γ > 0 ∧ ∃ k₁ : ℕ+, ∀ k, k₁ ≤ k → |A.rpow (3 ^ k) - (Mills_seq A k)| ≤ Real.exp (-γ * (3 ^ k)) := by sorry
+-/

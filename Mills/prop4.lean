@@ -33,6 +33,7 @@ lemma exist_n (a M : ℝ) (k : ℕ) (h : a ^ k < M) : ∃ n : ℕ, n > 0 ∧ (a 
   rcases tendsto_nbd f (a ^ k) M (lim_add_n_inv_pow_k a k) h with ⟨n, hn⟩
   exact ⟨n + 1, ⟨by linarith, hn (n + 1) (by linarith)⟩⟩
 
+/-
 theorem Mills_exists : Mills A := by
   have h (k : ℕ+) : Nat.Prime (Mills_seq A k) := by
     let M := Nat.floor (Mills_seq A k) + 1
@@ -44,10 +45,11 @@ theorem Mills_exists : Mills A := by
     rcases h₁ N hN₁ with ⟨B, hB₁, _, hB₂⟩ -- むだ？上と同様
     have h₄ : (Mills_seq A k) ≤ B ^ (3 ^ k) := by linarith [floor_le A (3 ^ k) (by linarith [Mills_gt_one]), pow_le_left A B (3 ^ k) (by linarith [Mills_gt_one]) (A_lb B hB₁)]
     have h₅ : B ^ (3 ^ k) < ↑M := by linarith [pow_lt_left B (A + 1 / N) (3 ^ k) (by norm_num) hB₁.left hB₂]
-    have h₆ : Nat.floor (A ^ (3 ^ k)) = Nat.floor (B ^ (3 ^ k)) := by
+    have h₆ : Mills_seq A k = Nat.floor (B ^ (3 ^ k)) := by
       apply floor_eq A B (3 ^ k) (by linarith [hB₁.left]) ⟨h₄, _⟩
       simp [M] at h₅
       exact h₅
     rw [h₆]
     exact hB₁.right k hk
   exact ⟨Mills_gt_one, h⟩
+-/

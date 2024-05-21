@@ -19,6 +19,7 @@ open NNReal
 #print Int.add_one_le_iff
 #print Int.lt_add_one_iff
 
+/-
 lemma lem6 (k : ℕ+) (x : ℝ≥0) (xm : Mills x) : (Mills_seq x k) ^ 3 ≤ (Mills_seq x (k + 1)) ∧ (Mills_seq x (k + 1)) < (Mills_seq x k + 1) ^ 3 - 1 := by
   have h₀ : Mills_seq x k ≤ x.rpow (3 ^ k) ∧ x.rpow (3 ^ k) < Mills_seq x k + 1 := by sorry
   have h₁ : (Mills_seq x k) ^ 3 ≤ x.rpow (3 ^ (k + 1)) ∧ x.rpow (3 ^ (k + 1)) < (Mills_seq x k + 1) ^ 3 := by sorry
@@ -32,3 +33,4 @@ lemma lem6 (k : ℕ+) (x : ℝ≥0) (xm : Mills x) : (Mills_seq x k) ^ 3 ≤ (Mi
   constructor
   · sorry
   · exact lt_of_le_of_ne h₃ h₄
+-/
