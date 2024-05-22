@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1716339404 "print.tex" "../print/print.pdf" "print" 1716339406
+["pdflatex"] 1716339404 "print.tex" "../print/print.pdf" "print" 1716346297
   "../print/print.aux" 1716339406 1625 2a68c01c125362b72c23318129e8365c "pdflatex"
   "../print/print.out" 1716339406 214 d83e23d6bf24aa8051e28fd218162237 "pdflatex"
   "/usr/local/texlive/2021/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -183,6 +183,6 @@
   "print.tex" 1716339399 1262 570b609e74b7f3e122b3a1bd9ec4a96b ""
   (generated)
   "../print/print.aux"
-  "../print/print.log"
-  "../print/print.out"
   "../print/print.pdf"
+  "../print/print.out"
+  "../print/print.log"

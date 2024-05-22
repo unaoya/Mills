@@ -6,17 +6,24 @@
 
 \documentclass{report}
 
-\usepackage{amssymb, amsthm, amsmath}
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
 \usepackage{hyperref}
-\usepackage[showmore, dep_graph]{blueprint}
+\usepackage{relsize}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.svg,.png,.jpg}
+\usepackage[capitalize]{cleveref}
+\usepackage[showmore, dep_graph, coverage, project=../../]{blueprint}
+
+\usepackage{tikz-cd}
+\usepackage{tikz}
 
 
 \input{macros/common}
 \input{macros/web}
 
-\home{https://unaoya.github.io/Mills}
-\github{https://github.com/unaoya/Mills}
-\dochome{https://unaoya.github.io/Mills/docs}
+% \home{https://unaoya.github.io/Mills}
+% \github{https://github.com/unaoya/Mills}
+% \dochome{https://unaoya.github.io/Mills/docs}
 
 \title{Mills}
 \author{unaoya}
