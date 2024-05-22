@@ -77,8 +77,11 @@ lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor 
 -- n₀は実数が本来かもしれないが、こっちも出るはず
 axiom Mahler (r : ℚ) (ε : ℝ) (h₁ : 1 < r) (h₂ : ∀ n : ℕ, ↑n ≠ r) :
 ∃ n₀ : ℕ, n₀ > 0 ∧ ∀ n ≥ n₀, min_dist (r ^ (n : ℝ)) > Real.exp (-ε * (n : ℝ))
+-/
 
-theorem Mills_irrational : Irrational A := by
+
+theorem Mills_irrational : Irrational A := by sorry
+/-
   intro h
   rcases h with ⟨r, hr⟩
   have h₁ : 1 < r := by

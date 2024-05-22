@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021) (preloaded format=xelatex 2022.3.6)  22 MAY 2024 09:56
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021) (preloaded format=xelatex 2022.3.6)  22 MAY 2024 12:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1174,26 +1174,25 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 ]
-(./content.tex [1]
-Chapter 1.
-[2
-
-]
-Chapter 2.
+(./content.tex
+Package hyperref Info: bookmark level for unknown definition defaults to 0 on i
+nput line 10.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 10.00107pt on input line 17.
+(Font)              scaled to size 10.00107pt on input line 12.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.00075pt on input line 17.
+(Font)              scaled to size 7.00075pt on input line 12.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.00053pt on input line 17.
+(Font)              scaled to size 5.00053pt on input line 12.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 9.99893pt on input line 17.
+(Font)              scaled to size 9.99893pt on input line 12.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 6.99925pt on input line 17.
+(Font)              scaled to size 6.99925pt on input line 12.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 4.99947pt on input line 17.
+(Font)              scaled to size 4.99947pt on input line 12.
+Package hyperref Info: bookmark level for unknown proposition defaults to 0 on 
+input line 17.
 Package hyperref Info: bookmark level for unknown theorem defaults to 0 on inpu
-t line 20.
+t line 28.
 )
 The property list \polyglossia@langsetup contains the pairs (without outer
 braces):
@@ -1229,24 +1228,22 @@ braces):
 >  {english/babelname}  =>  {american}
 >  {english/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {english/Localnumeral}  =>  {polyglossia@C@localnumeral}.
- [3
-
-] (../print/print.aux
+ [1] (../print/print.aux
 LaTeX Info: Redefining \rmfamily on input line 19.
 LaTeX Info: Redefining \sffamily on input line 19.
 LaTeX Info: Redefining \ttfamily on input line 19.
 Package cleveref Info: loaded `english' language definitions on input line 19.
 )
 Package rerunfilecheck Info: File `print.out' has not changed.
-(rerunfilecheck)             Checksum: D83E23D6BF24AA8051E28FD218162237;214.
+(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 30545 strings out of 476919
- 615056 string characters out of 5821841
- 1262940 words of memory out of 5000000
- 50038 multiletter control sequences out of 15000+600000
- 408785 words of font info for 74 fonts, out of 8000000 for 9000
+ 30538 strings out of 476919
+ 614876 string characters out of 5821841
+ 1263940 words of memory out of 5000000
+ 50037 multiletter control sequences out of 15000+600000
+ 408745 words of font info for 69 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  101i,6n,116p,458b,445s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on ../print/print.pdf (4 pages).
+Output written on ../print/print.pdf (2 pages).

@@ -5,17 +5,32 @@
 % If you want to split the blueprint content into several files then
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
-abc
-\chapter{a}
-chapter
 
-\chapter{b}
-\section{c}
-section
+\begin{definition}
+    \label{def:mills}
+    \lean{Mills}
+    A positive real number $x$ is Mills if $1 < x$ and
+    for all positive integers $n$, the number $\lfloor x^{3^n} \rfloor$ is prime.
+\end{definition}
 
-\section{d}
-$x=0$
+\begin{proposition}
+    \label{prop:mills}
+    \lean{exists_Mills}
+    \uses{def:mills}
+    There exists a Mills number.
+\end{proposition}
+
+\begin{proof}
+    proof
+\end{proof}
 
 \begin{theorem}
-    $x=0$
+    \label{thm:mills_irrational}
+    \lean{Mills_irrational}
+    \uses{def:mills, prop:mills}
+    The Mills' constant is irrational.    
 \end{theorem}
+
+\begin{proof}
+    proof
+\end{proof}

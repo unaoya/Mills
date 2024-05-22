@@ -61,25 +61,85 @@
 <div id="statements">
 
     
-    <div class="dep-modal-container" id="a0000000006_modal">
+    <div class="dep-modal-container" id="def:mills_modal">
       <div class="dep-modal-content">
           <button class="dep-closebtn">
 <svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
 </button>
         
-  <div class="thm" id="a0000000006" style="display: none">
+  <div class="thm" id="def:mills" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">0.1</span></div>
+    <div class="thm_thmcontent"><p>  A positive real number \(x\) is Mills if \(1 {\lt} x\) and for all positive integers \(n\), the number \(\lfloor x^{3^n} \rfloor \) is prime. </p>
+</div>
+
+    <a class="latex_link" href="index.html#def:mills">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://leanprover-community.github.io/mathlib4_docs/find/#doc/Mills">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="prop:mills_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="prop:mills" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">0.2</span></div>
+    <div class="thm_thmcontent"><p>   There exists a Mills number. </p>
+</div>
+
+    <a class="latex_link" href="index.html#prop:mills">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://leanprover-community.github.io/mathlib4_docs/find/#doc/exists_Mills">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:mills_irrational_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:mills_irrational" style="display: none">
     <div class="thm_thmheading">
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">2.1</span></div>
-    <div class="thm_thmcontent"><p>\(x=0\) </p>
+      <span class="theorem_thmlabel">0.3</span></div>
+    <div class="thm_thmcontent"><p>   The Mills’ constant is irrational. </p>
 </div>
 
-    <a class="latex_link" href="sect0002.html#a0000000006">LaTeX</a>
+    <a class="latex_link" href="index.html#thm:mills_irrational">LaTeX</a>
     
     
-  
+  <a class="lean_link lean_decl" href="https://leanprover-community.github.io/mathlib4_docs/find/#doc/Mills_irrational">Lean</a>
     
     
   
@@ -107,7 +167,7 @@ graphContainer.graphviz({useWorker: true})
     .width(width)
     .height(height)
     .fit(true)
-    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	a0000000006	[color=blue,		label=a0000000006,		shape=ellipse];}`)
+    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:mills"	[color=blue,		fillcolor="#A3D6FF",		label=mills,		shape=box,		style=filled];	"prop:mills"	[label=mills,		shape=ellipse];	"def:mills" -> "prop:mills"	[style=dashed];	"thm:mills_irrational"	[label=mills_irrational,		shape=ellipse];	"prop:mills" -> "thm:mills_irrational"	[style=dashed];}`)
     .on("end", interactive);
 
 latexLabelEscaper = function(label) {
