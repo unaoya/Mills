@@ -55,3 +55,24 @@ lemma Mills_gt_one : 1 < A := by
   have h₂ : 2 ≤ x.pnpow 3 := by apply Mills_lb x hx
   have : (2 : ℝ≥0) < 2 := by apply lt_of_le_of_lt h₂ h₁
   sorry
+
+axiom BHP : ∃ (x₀ : ℝ≥0), 2 ≤ x₀ ∧ ∀ (x : ℕ+), x ≥ x₀ → ∃ (p : ℕ+), (x ≤ p ∧ p ≤ x + (x : ℝ).rpow ^ θ.toReal ∧ Nat.Prime p)
+
+noncomputable def BHP_const : ℝ≥0 := Classical.choose BHP
+
+lemma BHP_const_ge2 : 2 ≤ BHP_const := (Classical.choose_spec BHP).left
+
+noncomputable def BHP_const_nat : ℕ := Nat.ceil BHP_const
+
+lemma BHP_const_nat_ge2 : 2 ≤ BHP_const_nat := by
+  have : Nat.ceil ((Nat.cast : ℕ → ℝ) 2) ≤ Nat.ceil BHP_const := Nat.ceil_le_ceil 2 BHP_const BHP_const_ge2
+  rw [Nat.ceil_natCast] at this
+  exact this
+
+-- lemma BHP_const_nat_BHP : ∀ x : ℕ, BHP_const_nat ≤ x → ∃ (p : ℕ), (x ≤ p ∧ p ≤ x + ((Nat.cast : ℕ → ℝ) x) ^ θ ∧ Nat.Prime p) := by
+--   intro x hx
+--   have : BHP_const ≤ x := by calc
+--     BHP_const ≤ BHP_const_nat := by apply Nat.le_ceil
+--     _ ≤ x := Nat.cast_le.2 hx
+--   apply (Classical.choose_spec BHP).right
+--   apply this

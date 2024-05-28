@@ -1,14 +1,3 @@
-import Init.Data.Nat.Basic
-import Mathlib.Algebra.Order.Ring.Lemmas
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.Nat.Prime
-import Mathlib.Data.Real.Irrational
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-
 import Mills.Defs
 
 open Filter Topology NNReal
@@ -30,6 +19,8 @@ lemma aux_ineq_in_thm3 (x : ℝ≥0) (xgt1 : 1 < x.val) : x.rpow 3 + x.rpow (3 *
     _ = x ^ 3 + x ^ 2 := by simp
     _ ≤ (x + 1) ^ 3 - 1 := by apply aux'; nlinarith
     _ = (x + 1).rpow 3 - 1 := by simp
+
+lemma prime_seq : ∃ (p : ℕ+ → ℕ+), ∀ n, Nat.Prime (p n) ∧ pnat_cube (p n) ≤ p (n + 1) ∧ p (n + 1) ≤ pnat_cube (p n + 1) - 1 := by sorry
 
 theorem exists_Mills : ∃ A : ℝ≥0, Mills A := by sorry
 /-

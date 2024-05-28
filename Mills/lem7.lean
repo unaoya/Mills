@@ -1,14 +1,3 @@
-import Init.Data.Nat.Basic
-import Mathlib.Algebra.Order.Ring.Lemmas
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.Nat.Prime
-import Mathlib.Data.Real.Irrational
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-
 import Mills.Defs
 
 open Filter Topology NNReal
@@ -31,7 +20,6 @@ lemma aux_ineq_in_lem7_2 (x : ℝ≥0) (xgt1 : 1 < x) : x.rpow 3 + x.rpow (3 * �
   apply NNReal.one_le_rpow (le_of_lt xgt1) (by norm_num)
   exact xgt1_ne_0 x xgt1
   exact xgt1_ne_0 x xgt1
-
 
 -- 型をどうするか？冪乗、aはℝ≥0か？
 lemma aux_ineq_in_lem7 (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ a / 3 + 1 := by

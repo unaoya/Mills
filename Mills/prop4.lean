@@ -1,14 +1,3 @@
-import Init.Data.Nat.Basic
-import Mathlib.Algebra.Order.Ring.Lemmas
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.Nat.Prime
-import Mathlib.Data.Real.Irrational
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-
 import Mills.Defs
 import Mills.thm3
 
@@ -37,15 +26,14 @@ theorem Mills_exists : Mills A := by
     let M := Nat.floor (Mills_seq A k) + 1
     have h₀ : (Mills_seq A k) < M := by dsimp [M]; apply Nat.lt_succ_floor (Mills_seq A k)
     have h₂ : A.pnpow (pnat_cube k) < M := by
-      dsimp [Mills_seq, pnpow] at h₀
-      sorry
+      dsimp [Mills_seq] at h₀
+      apply (Nat.floor_lt (by simp)).1 h₀
     rcases exist_n A M (pnat_cube k) h₂ with ⟨N, hN₁, hN₂⟩
-    have h₁ (n : ℕ+) : ∃ B ∈ W, A ≤ B ∧ B < A + 1 / n := by
-      have : 1 / (n.val : ℝ≥0) > 0 := by norm_num
-      rcases Real.lt_sInf_add_pos W_real_nonempty this with ⟨B, hB₁, hB₂⟩
+    have h₁ : ∃ B ∈ W, A ≤ B ∧ B < A + 1 / N := by
+--      rcases Real.lt_sInf_add_pos W_real_nonempty _ with ⟨B, hB₁, hB₂⟩
       sorry
 --      exact ⟨B, ⟨hB₁, A_lb B hB₁, hB₂⟩⟩
-    rcases h₁ ⟨N, hN₁⟩ with ⟨B, hB₁, _, hB₂⟩ -- むだ？上と同様
+    rcases h₁ with ⟨B, hB₁, _, hB₂⟩ -- むだ？上と同様
     have h₄ : (Mills_seq A k) ≤ B.pnpow (pnat_cube k) := by sorry -- linarith [floor_le A (3 ^ k) (by linarith [Mills_gt_one]), pow_le_left A B (3 ^ k) (by linarith [Mills_gt_one]) (A_lb B hB₁)]
     have h₅ : B.pnpow (pnat_cube k) < ↑M := by sorry -- linarith [pow_lt_left B (A + 1 / N) (3 ^ k) (by norm_num) hB₁.left hB₂]
     have h₆ : Mills_seq A k = Nat.floor (B.pnpow (pnat_cube k)) := by sorry
