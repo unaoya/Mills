@@ -68,6 +68,6 @@ theorem Mills_irrational2 : Irrational A := by
       _ ≤ |A.val ^ (pnat_cube k).val - Nat.floor (A.val ^ (pnat_cube k).val)| := by apply min_dist_floor; simp
       _ = |A.val ^ (pnat_cube k).val - Nat.floor (A ^ (pnat_cube k).val)| := by
         apply congr_arg; simp; apply congr_arg; simp
-      _ = |↑(A.rpow (pnat_cube k)) - ↑(Mills_seq A k)| := by dsimp [rpow, Mills_seq, pnpow]; simp
+      _ = |↑(A.pnpow (pnat_cube k)) - ↑(Mills_seq A k)| := by dsimp [Mills_seq, pnpow]
       _ ≤ Real.exp (-γ * (pnat_cube k)) := hγ k (le_max_right K k₁)
   linarith

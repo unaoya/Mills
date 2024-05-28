@@ -16,7 +16,7 @@ open Filter Topology NNReal
 lemma aux (x : ℝ) (xpos : 0 < x) : x ^ 3 + x ^ 2 ≤ (x + 1) ^ 3 - 1 := by nlinarith
 
 lemma aux' (x : ℝ≥0) (xpos : 0 < x) : x ^ 3 + x ^ 2 ≤ (x + 1) ^ 3 - 1 := by
-  rw [← NNReal.coe_le_coe, NNReal.coe_sub]; simp
+  rw [← NNReal.coe_le_coe, NNReal.coe_sub _]; simp
   exact aux x.val xpos
   calc
     1 ≤ x + 1 := by apply le_add_of_nonneg_left; simp

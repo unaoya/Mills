@@ -17,9 +17,12 @@ noncomputable def θ : ℝ≥0 := 0.525
 
 -- notationも導入する？
 
-noncomputable def NNReal.pnpow (x : ℝ≥0) (n : ℕ+) : ℝ≥0 := x ^ ((Nat.cast : ℕ → ℝ) n)
+noncomputable def NNReal.pnpow (x : ℝ≥0) (n : ℕ+) : ℝ≥0 := x ^ n.val
 
 def pnat_cube (m : ℕ+) : ℕ+ := ⟨Nat.pow 3 m, Nat.pow_pos (by norm_num)⟩
+
+lemma pnat_cube_succ (m : ℕ+) : pnat_cube (m + 1) = pnat_cube m * 3 := by
+  sorry
 
 noncomputable def Mills_seq (x : ℝ≥0) (n : ℕ+) : ℕ := Nat.floor (x.pnpow (pnat_cube n))
 
