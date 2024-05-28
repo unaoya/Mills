@@ -13,7 +13,11 @@
     \lean{Mills}
     A positive real number $x$ is Mills if $1 < x$ and
     for all positive integers $n$, the number $\lfloor x^{3^n} \rfloor$ is prime.
-\end{definition}    
+\end{definition}
+
+\begin{theorem}
+    BHP
+\end{theorem}
 
 \begin{proposition}
     \label{prop:mills}
@@ -25,6 +29,36 @@
 \begin{proof}
     proof
 \end{proof}
+
+\begin{proposition}
+    $W$ has minimum.
+\end{proposition}
+
+\begin{proposition}
+    $\theta = 21/40$.
+    There exists a natural number $k_0$ such that for all $k \geq k_0$, we have
+    $$
+    p_k^3 \leq p_{k+1} \leq p_k^3 + p_k^{3\theta}.
+    $$
+\end{proposition}
+
+\begin{lemma}
+    For all natural numbers $k$, we have
+    $$
+    p_k \leq p_{k+1} < (p_k^3 + 1)^3 - 1.
+    $$
+\end{lemma}
+
+\begin{lemma}
+    There exists $\gamma > 0$ and $k_1 > 1$ such that for all $k \geq k_1$, we have
+    $$
+    \lvert A ^ 3 ^ k - p_k\rvert \leq e^{-3^k\gamma}.
+    $$
+\end{lemma}
+
+\begin{theorem}
+    Mahler
+\end{theorem}
 
 \begin{theorem}
     \label{thm:mills_irrational}
