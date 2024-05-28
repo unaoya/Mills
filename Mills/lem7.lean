@@ -13,6 +13,11 @@ import Mills.Defs
 
 open Filter Topology NNReal
 
+lemma xgt1_ne_0 (x : ℝ≥0) (h : 1 < x) : x ≠ 0 := by
+  rw [← NNReal.coe_ne_zero]
+  rw [← NNReal.one_lt_coe] at h
+  linarith
+
 -- どっかで似たようなことをやってる
 lemma aux_ineq_in_lem7_2 (x : ℝ≥0) (xgt1 : 1 < x) : x.rpow 3 + x.rpow (3 * θ) + 1 ≤ x.rpow 3 * (1 + 2 * x.rpow (3 * (θ - 1))) := by
   ring_nf
@@ -24,8 +29,9 @@ lemma aux_ineq_in_lem7_2 (x : ℝ≥0) (xgt1 : 1 < x) : x.rpow 3 + x.rpow (3 * �
   rw [mul_two]
   apply add_le_add_right
   apply NNReal.one_le_rpow (le_of_lt xgt1) (by norm_num)
-  sorry
-  sorry
+  exact xgt1_ne_0 x xgt1
+  exact xgt1_ne_0 x xgt1
+
 
 -- 型をどうするか？冪乗、aはℝ≥0か？
 lemma aux_ineq_in_lem7 (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ a / 3 + 1 := by
@@ -45,7 +51,5 @@ lemma aux_ineq_in_lem7 (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ 
       rw [div_le_div_right (by norm_num), mul_le_iff_le_one_left apos]
       apply Real.rpow_le_one_of_one_le_of_nonpos (by linarith [hc₁.left]) (by linarith)
 
-/-
 -- k₁の条件は除いても強くなるはず（書き換えも形式化したほうがいい）
-lemma lem7 : ∃ γ : ℝ≥0, γ > 0 ∧ ∃ k₁ : ℕ+, ∀ k, k₁ ≤ k → |A.rpow (3 ^ k) - (Mills_seq A k)| ≤ Real.exp (-γ * (3 ^ k)) := by sorry
--/
+lemma lem7 : ∃ γ : ℝ≥0, γ > 0 ∧ ∃ k₁ : ℕ+, ∀ k, k₁ ≤ k → |(A.rpow (3 ^ k.val)).val - (Mills_seq A k)| ≤ Real.exp (-γ * (3 ^ k.val)) := by sorry

@@ -10,6 +10,7 @@ import Mathlib.Data.Real.Irrational
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 
 import Mills.Defs
+import Mills.lem7
 
 open Filter Topology NNReal
 
@@ -60,7 +61,6 @@ lemma Mills_not_int (A : ℝ≥0) (h : Mills A) : ∀ n : ℤ, A.toReal ≠ n :=
   rw [← hm] at hn
   sorry
 
-noncomputable def min_dist (x : ℝ) : ℝ := |x - round x|
 
 lemma min_dist_fract (x : ℝ) : min_dist x = min (Int.fract x) (1 - Int.fract x) := abs_sub_round_eq_min x
 
@@ -75,20 +75,23 @@ lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor 
 
 -- notation: "∥" x "∥" => min_dist A
 -- n₀は実数が本来かもしれないが、こっちも出るはず
-axiom Mahler (r : ℚ) (ε : ℝ) (h₁ : 1 < r) (h₂ : ∀ n : ℕ, ↑n ≠ r) :
-∃ n₀ : ℕ, n₀ > 0 ∧ ∀ n ≥ n₀, min_dist (r ^ (n : ℝ)) > Real.exp (-ε * (n : ℝ))
 -/
 
+noncomputable def min_dist (x : ℝ) : ℝ := |x - round x|
 
-theorem Mills_irrational : Irrational A := by sorry
-/-
+axiom Mahler (r : ℚ) (ε : ℝ) (h₁ : 1 < r) (h₂ : ∀ n : ℕ, ↑n ≠ r) :
+∃ n₀ : ℕ, n₀ > 0 ∧ ∀ n ≥ n₀, min_dist (r ^ (n : ℝ)) > Real.exp (-ε * (n : ℝ))
+
+
+theorem Mills_irrational : Irrational A := by
   intro h
   rcases h with ⟨r, hr⟩
   have h₁ : 1 < r := by
     have : Rat.cast 1  < (r : ℝ) := by rw [hr]; simp; sorry
     apply Rat.cast_lt.1 this
   -- rをℚ≥0にしたほうがいいかも？
-  rcases lem7 with ⟨γ, _, k₁, _, h₃⟩
+  have h₂ : ∀ n : ℕ, ↑n ≠ r := by sorry
+  rcases lem7 with ⟨γ, γpos, k₁, hγ⟩
   rcases Mahler r γ h₁ h₂ with ⟨K, h₄⟩
   let k := max K k₁
   have h₅ : K ≤ 3 ^ k := by
@@ -98,7 +101,7 @@ theorem Mills_irrational : Irrational A := by sorry
   have h₆ : min_dist (r ^ 3 ^ k) > Real.exp (-γ * 3 ^ k) := by
     have : Nat.pow 3 k = (3 : ℝ) ^ k := by simp -- 抽象化
     calc
-      min_dist (r.pow 3 ^ k) = min_dist (r.rpow (3 ^ k : ℝ)) := by rw [← Real.rpow_natCast, ← Real.rpow_natCast]; simp
+      min_dist (r.rpow 3 ^ k) = min_dist (r.rpow (3 ^ k : ℝ)) := by rw [← Real.rpow_natCast, ← Real.rpow_natCast]; simp
       _ > Real.exp (-γ * 3 ^ k) := by rw [← this]; apply h₄.right (3 ^ k) h₅
   have h₇ : min_dist (r.rpow 3 ^ k) ≤ Real.exp (-γ * 3 ^ k) := by
     calc
@@ -114,4 +117,3 @@ theorem Mills_irrational : Irrational A := by sorry
       _ = |A ^ (3 : ℝ) ^ k - p' k| := by rw [p'eqp''', p''', ← Real.rpow_natCast]
       _ ≤ Real.exp (-γ * 3 ^ k) := h₃ k (le_max_right K k₁)
   linarith
--/
