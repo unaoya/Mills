@@ -24,6 +24,9 @@ def pnat_cube (m : ℕ+) : ℕ+ := ⟨Nat.pow 3 m, Nat.pow_pos (by norm_num)⟩
 lemma pnat_cube_succ (m : ℕ+) : pnat_cube (m + 1) = pnat_cube m * 3 := by
   sorry
 
+lemma pnpow_le {a b : ℝ≥0} (n : ℕ+) (h : a ≤ b) : a.pnpow n ≤ b.pnpow n := by sorry
+lemma pnpow_lt {a b : ℝ≥0} (n : ℕ+) (h : a < b) : a.pnpow n < b.pnpow n := by sorry
+
 noncomputable def Mills_seq (x : ℝ≥0) (n : ℕ+) : ℕ := Nat.floor (x.pnpow (pnat_cube n))
 
 def Mills (x : ℝ≥0) : Prop := 1 < x ∧ ∀ n : ℕ+, Nat.Prime (Mills_seq x n)

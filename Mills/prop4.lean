@@ -29,18 +29,21 @@ theorem Mills_exists : Mills A := by
       dsimp [Mills_seq] at h₀
       apply (Nat.floor_lt (by simp)).1 h₀
     rcases exist_n A M (pnat_cube k) h₂ with ⟨N, hN₁, hN₂⟩
-    have h₁ : ∃ B ∈ W, A ≤ B ∧ B < A + 1 / N := by
---      rcases Real.lt_sInf_add_pos W_real_nonempty _ with ⟨B, hB₁, hB₂⟩
-      sorry
---      exact ⟨B, ⟨hB₁, A_lb B hB₁, hB₂⟩⟩
-    rcases h₁ with ⟨B, hB₁, _, hB₂⟩ -- むだ？上と同様
-    have h₄ : (Mills_seq A k) ≤ B.pnpow (pnat_cube k) := by sorry -- linarith [floor_le A (3 ^ k) (by linarith [Mills_gt_one]), pow_le_left A B (3 ^ k) (by linarith [Mills_gt_one]) (A_lb B hB₁)]
-    have h₅ : B.pnpow (pnat_cube k) < ↑M := by sorry -- linarith [pow_lt_left B (A + 1 / N) (3 ^ k) (by norm_num) hB₁.left hB₂]
-    have h₆ : Mills_seq A k = Nat.floor (B.pnpow (pnat_cube k)) := by sorry
-      -- apply floor_eq A B (3 ^ k) (by linarith [hB₁.left]) ⟨h₄, _⟩
-      -- simp [M] at h₅
-      -- exact h₅
-    rw [h₆]
-    sorry
---    exact hB₁.right k hk
+    have : A < A + 1 / N := by simp; exact hN₁
+    rcases (@exists_lt_of_csInf_lt ℝ≥0 _ W (A + 1 / N) W_nonempty this) with ⟨B, hB₁, hB₂⟩
+    have hAB : A ≤ B := csInf_le (by simp) hB₁
+    have h₄ : (Mills_seq A k) ≤ B.pnpow (pnat_cube k) := by calc
+        (Mills_seq A k) ≤ A.pnpow (pnat_cube k) := by apply Nat.floor_le; simp
+        _ ≤ B.pnpow (pnat_cube k) := by apply pnpow_le (pnat_cube k) hAB
+    have h₅ : B.pnpow (pnat_cube k) < ↑M := by calc
+      B.pnpow (pnat_cube k) < (A + 1 / N).pnpow (pnat_cube k) := by apply pnpow_lt (pnat_cube k) hB₂
+      _ < M := hN₂
+    have h₆ : Nat.floor (B.pnpow (pnat_cube k)) = Mills_seq A k := by
+      rw [Nat.floor_eq_iff (by simp)]
+      dsimp [M] at h₅
+      simp at h₅
+      exact ⟨h₄, h₅⟩
+    have h₇ : Nat.floor (B.pnpow (pnat_cube k)) = Mills_seq B k := rfl
+    rw [← h₆, h₇]
+    exact hB₁.right k
   exact ⟨Mills_gt_one, h⟩
