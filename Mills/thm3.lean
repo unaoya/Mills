@@ -13,37 +13,23 @@ import Mills.Defs
 
 open Filter Topology NNReal
 
-example (x : ℝ) (xpos : 0 < x) : x ^ 3 + x ^ 2 ≤ (x + 1) ^ 3 - 1 := by nlinarith
+lemma aux (x : ℝ) (xpos : 0 < x) : x ^ 3 + x ^ 2 ≤ (x + 1) ^ 3 - 1 := by nlinarith
+
+lemma aux' (x : ℝ≥0) (xpos : 0 < x) : x ^ 3 + x ^ 2 ≤ (x + 1) ^ 3 - 1 := by
+  rw [← NNReal.coe_le_coe, NNReal.coe_sub]; simp
+  exact aux x.val xpos
+  calc
+    1 ≤ x + 1 := by apply le_add_of_nonneg_left; simp
+    _ ≤ (x + 1) ^ 3 := by apply le_self_pow; simp; simp
 
 -- 定理3の冒頭の不等式。これは一般的に成り立つ。似た話を後でも使う？
 lemma aux_ineq_in_thm3 (x : ℝ≥0) (xgt1 : 1 < x.val) : x.rpow 3 + x.rpow (3 * θ).toReal < (x + 1).rpow 3 - 1 := by
-  have h₀ : (3 * θ).toReal < 2 := by rw [θ]; norm_num;
-  have h₃ : x.rpow 3 + x.rpow (3 * θ).toReal < (x + 1).rpow 3 - 1 := by
-    calc
-      x.rpow 3 + x.rpow (3 * θ).toReal < x.rpow 3 + x.rpow 2 := by
-        apply add_lt_add_left
-        dsimp [rpow]
-        apply Real.rpow_lt_rpow_of_exponent_lt xgt1
-        simp at h₀
-        exact h₀
-      _ ≤ x.rpow 3 + 3 * x.rpow 2 := by
-        apply add_le_add_left
-        rw [le_mul_iff_one_le_left]
-        norm_num
-        dsimp [rpow]
-        rw [← NNReal.coe_lt_coe]
-        simp
-        have : x.val = toReal x := by simp
-        nlinarith
-      _ ≤ x.rpow 3 + 3 * x.rpow 2 + 3 * x.rpow 1 := by apply le_add_of_nonneg_right (by simp)
-      _ = (x + 1).rpow 3 - 1 := by
-        dsimp [Real.rpow]
-        rw [← NNReal.eq_iff]
-        simp
-        ring_nf
-        rw [add_assoc 1, add_assoc 1, add_tsub_cancel_left]
-        simp
-  exact h₃
+  have : (3 * θ).toReal < 2 := by rw [θ]; norm_num;
+  calc
+    x.rpow 3 + x.rpow (3 * θ).toReal < x.rpow 3 + x.rpow 2 := by apply add_lt_add_left (Real.rpow_lt_rpow_of_exponent_lt xgt1 this)
+    _ = x ^ 3 + x ^ 2 := by simp
+    _ ≤ (x + 1) ^ 3 - 1 := by apply aux'; nlinarith
+    _ = (x + 1).rpow 3 - 1 := by simp
 
 theorem exists_Mills : ∃ A : ℝ≥0, Mills A := by sorry
 /-
@@ -57,3 +43,7 @@ theorem exists_Mills : ∃ A : ℝ≥0, Mills A := by sorry
 -/
 
 theorem W_nonempty : W.Nonempty := exists_Mills
+
+def W_real := { x | ∃ A : ℝ≥0, Mills A ∧ x = A.val }
+
+theorem W_real_nonempty : W_real.Nonempty := sorry

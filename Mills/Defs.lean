@@ -19,7 +19,9 @@ noncomputable def θ : ℝ≥0 := 0.525
 
 noncomputable def NNReal.pnpow (x : ℝ≥0) (n : ℕ+) : ℝ≥0 := x ^ ((Nat.cast : ℕ → ℝ) n)
 
-noncomputable def Mills_seq (x : ℝ≥0) (n : ℕ+) : ℕ := Nat.floor (x.pnpow (3 ^ n.val))
+def pnat_cube (m : ℕ+) : ℕ+ := ⟨Nat.pow 3 m, Nat.pow_pos (by norm_num)⟩
+
+noncomputable def Mills_seq (x : ℝ≥0) (n : ℕ+) : ℕ := Nat.floor (x.pnpow (pnat_cube n))
 
 def Mills (x : ℝ≥0) : Prop := 1 < x ∧ ∀ n : ℕ+, Nat.Prime (Mills_seq x n)
 
@@ -35,7 +37,6 @@ def Mills_lb (x : ℝ≥0) (h : Mills x) : 2 ≤ x.pnpow 3 := by
   have h₁ : 2 ≤ Mills_seq x 1 := Mills_seq_ge_2 x 1 h
   dsimp [Mills_seq] at h₁
   have h₂ : Nat.floor (x.pnpow 3) ≤ x.pnpow 3 := by apply Nat.floor_le; simp
-  simp at h₁
   sorry
 
 -- lemma hh₁ : IsGLB W (sInf W) := Real.is_glb_sInf W exists_Mills ⟨1, fun _ ha ↦ le_of_lt ha.1⟩

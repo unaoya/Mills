@@ -28,8 +28,8 @@ lemma Mills_not_nat (A : ℝ≥0) (h : Mills A) : ∀ n : ℕ, A ≠ n := by
   intro n hn
   have : Mills_seq A 1 = n ^ 3 :=  by
     simp [Mills_seq, hn, pnpow]
-    sorry
---    rw [← Real.rpow_natCast, ← cast_nat_pow_eq_rpow_cast, Nat.floor_coe]; simp
+    have : ((Nat.cast : ℕ → ℝ≥0) n) ^ 3 = Nat.cast (n ^ 3) := by simp
+    rw [this, Nat.floor_coe]
   have : ¬Nat.Prime (Mills_seq A 1) := by rw [this]; exact Nat.Prime.not_prime_pow (by simp)
   have : Nat.Prime (Mills_seq A 1) := h.right 1
   contradiction
@@ -61,17 +61,11 @@ lemma Mills_not_int (A : ℝ≥0) (h : Mills A) : ∀ n : ℤ, A.toReal ≠ n :=
   rw [← hm] at hn
   sorry
 
-
 lemma min_dist_fract (x : ℝ) : min_dist x = min (Int.fract x) (1 - Int.fract x) := abs_sub_round_eq_min x
 
 lemma floor_cast (x : ℝ) (xpos : 0 ≤ x) : (Nat.cast : ℕ → ℝ) (Nat.floor x) = (Int.cast : ℤ → ℝ) (Int.floor x) := by
   apply natCast_floor_eq_intCast_floor
   exact xpos
-
--- Nat.floorにする必要ある？Int.floorでもいい？
-lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor x| := by
-  rw [natCast_floor_eq_intCast_floor xpos, min_dist_fract, Int.self_sub_floor, abs_of_nonneg (Int.fract_nonneg x)]
-  exact min_le_left _ _
 
 -- notation: "∥" x "∥" => min_dist A
 -- n₀は実数が本来かもしれないが、こっちも出るはず
@@ -79,41 +73,35 @@ lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor 
 
 noncomputable def min_dist (x : ℝ) : ℝ := |x - round x|
 
+lemma min_dist_fract (x : ℝ) : min_dist x = min (Int.fract x) (1 - Int.fract x) := abs_sub_round_eq_min x
+
+-- Nat.floorにする必要ある？Int.floorでもいい？
+lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor x| := by
+  rw [natCast_floor_eq_intCast_floor xpos, min_dist_fract, Int.self_sub_floor, abs_of_nonneg (Int.fract_nonneg x)]
+  exact min_le_left _ _
+
 axiom Mahler (r : ℚ) (ε : ℝ) (h₁ : 1 < r) (h₂ : ∀ n : ℕ, ↑n ≠ r) :
-∃ n₀ : ℕ, n₀ > 0 ∧ ∀ n ≥ n₀, min_dist (r ^ (n : ℝ)) > Real.exp (-ε * (n : ℝ))
+∃ n₀ : ℕ+, ∀ n ≥ n₀, min_dist (r ^ n.val) > Real.exp (-ε * (n : ℝ))
 
-
-theorem Mills_irrational : Irrational A := by
-  intro h
-  rcases h with ⟨r, hr⟩
+theorem Mills_irrational2 : Irrational A := by
+  rintro ⟨r, hr⟩
   have h₁ : 1 < r := by
-    have : Rat.cast 1  < (r : ℝ) := by rw [hr]; simp; sorry
-    apply Rat.cast_lt.1 this
-  -- rをℚ≥0にしたほうがいいかも？
+    apply (@Rat.cast_lt ℝ).1
+    rw [hr]; simp; sorry
   have h₂ : ∀ n : ℕ, ↑n ≠ r := by sorry
   rcases lem7 with ⟨γ, γpos, k₁, hγ⟩
   rcases Mahler r γ h₁ h₂ with ⟨K, h₄⟩
   let k := max K k₁
-  have h₅ : K ≤ 3 ^ k := by
+  have h₅ : K ≤ (pnat_cube k) := by
     calc
       K ≤ k := le_max_left K k₁
-      _ ≤ 3 ^ k := by apply le_of_lt (Nat.lt_pow_self (by norm_num) k)
-  have h₆ : min_dist (r ^ 3 ^ k) > Real.exp (-γ * 3 ^ k) := by
-    have : Nat.pow 3 k = (3 : ℝ) ^ k := by simp -- 抽象化
+      _ ≤ (pnat_cube k) := by apply le_of_lt (Nat.lt_pow_self _ k.val); simp
+  have h₆ : min_dist (r ^ (pnat_cube k).val) > Real.exp (-γ * ((pnat_cube k))) := by apply h₄ (pnat_cube k) h₅
+  have h₇ : min_dist (r ^ (pnat_cube k).val) ≤ Real.exp (-γ * (pnat_cube k)) := by
     calc
-      min_dist (r.rpow 3 ^ k) = min_dist (r.rpow (3 ^ k : ℝ)) := by rw [← Real.rpow_natCast, ← Real.rpow_natCast]; simp
-      _ > Real.exp (-γ * 3 ^ k) := by rw [← this]; apply h₄.right (3 ^ k) h₅
-  have h₇ : min_dist (r.rpow 3 ^ k) ≤ Real.exp (-γ * 3 ^ k) := by
-    calc
-      min_dist (r ^ 3 ^ k) ≤ |(r : ℝ) ^ 3 ^ k - Nat.floor ((r : ℝ) ^ 3 ^ k)| := by
-        apply min_dist_floor
-        rw [h, ← Real.rpow_natCast]
-        apply Real.rpow_nonneg (by linarith [Mills_gt_one])
-      _ = |A ^ 3 ^ k - Nat.floor (A ^ 3 ^ k)| := by rw [h]
-      _ = |A ^ (3 : ℝ) ^ k - Nat.floor (A ^ (3 : ℝ) ^ k)| := by
-        rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-        have : (Nat.cast : ℕ → ℝ) (Nat.pow 3 k) = (3 : ℝ) ^ (k : ℝ) := by simp --抽象化
-        rw [← this]; simp
-      _ = |A ^ (3 : ℝ) ^ k - p' k| := by rw [p'eqp''', p''', ← Real.rpow_natCast]
-      _ ≤ Real.exp (-γ * 3 ^ k) := h₃ k (le_max_right K k₁)
+      min_dist (r ^ (pnat_cube k).val) = min_dist (A.val ^ (pnat_cube k).val) := by rw [hr]; simp
+      _ ≤ |A.val ^ (pnat_cube k).val - Nat.floor (A.val ^ (pnat_cube k).val)| := by apply min_dist_floor; simp
+      _ ≤ |A.val ^ (pnat_cube k).val - Nat.floor (A ^ (pnat_cube k).val)| := by sorry
+      _ = |↑(A.rpow (pnat_cube k)) - ↑(Mills_seq A k)| := by dsimp [rpow, Mills_seq, pnpow]; simp
+      _ ≤ Real.exp (-γ * (pnat_cube k)) := hγ k (le_max_right K k₁)
   linarith

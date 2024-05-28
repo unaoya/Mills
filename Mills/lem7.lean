@@ -52,4 +52,4 @@ lemma aux_ineq_in_lem7 (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ 
       apply Real.rpow_le_one_of_one_le_of_nonpos (by linarith [hc₁.left]) (by linarith)
 
 -- k₁の条件は除いても強くなるはず（書き換えも形式化したほうがいい）
-lemma lem7 : ∃ γ : ℝ≥0, γ > 0 ∧ ∃ k₁ : ℕ+, ∀ k, k₁ ≤ k → |(A.rpow (3 ^ k.val)).val - (Mills_seq A k)| ≤ Real.exp (-γ * (3 ^ k.val)) := by sorry
+lemma lem7 : ∃ γ : ℝ≥0, γ > 0 ∧ ∃ k₁ : ℕ+, ∀ k, k₁ ≤ k → |(A.rpow (pnat_cube k)).val - (Mills_seq A k)| ≤ Real.exp (-γ * (pnat_cube k)) := by sorry
