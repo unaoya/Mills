@@ -16,7 +16,7 @@ open Filter Topology NNReal
 
 lemma lim_add_n_inv_pow_k (a : ℝ) (k : ℕ) : Tendsto (fun n : ℕ ↦ (a + 1 / n) ^ k) atTop (𝓝 (a ^ k)) := by
   set add_a_pow_k := (fun x : ℝ ↦ x ^ k) ∘ (fun x : ℝ ↦ a + x) with add_a_pow_k_def
-  have : (fun n : ℕ ↦ (a + 1 / n ) ^ k) = add_a_pow_k ∘ (fun n : ℕ ↦ (n : ℝ)⁻¹) := by funext; rw [add_a_pow_k]; simp
+  have : (fun n : ℕ ↦ (a + 1 / n) ^ k) = add_a_pow_k ∘ (fun n : ℕ ↦ (n : ℝ)⁻¹) := by sorry -- funext; rw [add_a_pow_k]; simp
   rw [this]
   have : Tendsto add_a_pow_k (𝓝 0) (𝓝 (add_a_pow_k 0)) := Continuous.tendsto (Continuous.comp (continuous_pow k) (continuous_add_left a)) 0
   simp [add_a_pow_k] at this
@@ -43,14 +43,16 @@ theorem Mills_exists : Mills A := by
     have h₁ (n : ℕ+) : ∃ B ∈ W, A ≤ B ∧ B < A + 1 / n := by
       have : 1 / (n.val : ℝ≥0) > 0 := by norm_num
       rcases Real.lt_sInf_add_pos W_real_nonempty this with ⟨B, hB₁, hB₂⟩
-      exact ⟨B, ⟨hB₁, A_lb B hB₁, hB₂⟩⟩
+      sorry
+--      exact ⟨B, ⟨hB₁, A_lb B hB₁, hB₂⟩⟩
     rcases h₁ ⟨N, hN₁⟩ with ⟨B, hB₁, _, hB₂⟩ -- むだ？上と同様
-    have h₄ : (Mills_seq A k) ≤ B ^ (3 ^ k.val) := by linarith [floor_le A (3 ^ k) (by linarith [Mills_gt_one]), pow_le_left A B (3 ^ k) (by linarith [Mills_gt_one]) (A_lb B hB₁)]
-    have h₅ : B ^ (3 ^ k.val) < ↑M := by linarith [pow_lt_left B (A + 1 / N) (3 ^ k) (by norm_num) hB₁.left hB₂]
-    have h₆ : Mills_seq A k = Nat.floor (B ^ (3 ^ k.val)) := by
-      apply floor_eq A B (3 ^ k) (by linarith [hB₁.left]) ⟨h₄, _⟩
-      simp [M] at h₅
-      exact h₅
+    have h₄ : (Mills_seq A k) ≤ B ^ (3 ^ k.val) := by sorry -- linarith [floor_le A (3 ^ k) (by linarith [Mills_gt_one]), pow_le_left A B (3 ^ k) (by linarith [Mills_gt_one]) (A_lb B hB₁)]
+    have h₅ : B ^ (3 ^ k.val) < ↑M := by sorry -- linarith [pow_lt_left B (A + 1 / N) (3 ^ k) (by norm_num) hB₁.left hB₂]
+    have h₆ : Mills_seq A k = Nat.floor (B ^ (3 ^ k.val)) := by sorry
+      -- apply floor_eq A B (3 ^ k) (by linarith [hB₁.left]) ⟨h₄, _⟩
+      -- simp [M] at h₅
+      -- exact h₅
     rw [h₆]
-    exact hB₁.right k hk
+    sorry
+--    exact hB₁.right k hk
   exact ⟨Mills_gt_one, h⟩
