@@ -670,36 +670,44 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
       dsimp only [p'] at this
       rw [← cast_nat_pow_eq_rpow_cast] at this
       apply Nat.cast_le.1 this
-    · have : n.succ = k := by linarith
-      sorry
-      -- rw [this]
-      -- simp
-      -- exact (hqq' ⟨p k, h'⟩ 0).left
+    · have : n + 1 = k := by linarith
+      rw [this]
+      simp
+      exact (hqq' ⟨p k, h'⟩ 0).left
     · linarith
     · rw [Nat.sub_add_comm]
-      sorry
-      sorry
-      -- exact (hqq' ⟨p k, h'⟩ (n.succ - k)).left
-      -- linarith
+      have : n - k + 1 = n.succ - k := by
+        norm_num
+        have : k < n + 1 := by linarith
+        have : k ≤ n := by linarith
+        rw [add_comm n 1, Nat.add_sub_assoc, add_comm]
+        exact this
+      rw [this]
+      have : n + 1 + 1 - k = n.succ - k + 1 := by
+        norm_num
+        rw [add_comm n 1, add_assoc, add_comm n 1, ← add_assoc, Nat.add_sub_assoc, add_assoc 1 1, add_comm 1 (n - k), ← add_assoc, ← Nat.add_sub_assoc]
+        linarith
+        linarith
+      rw [this]
+      exact (hqq' ⟨p k, h'⟩ (n.succ - k)).left
+      linarith
   have h_q_right : (n : ℕ) → q (n + 1) < ((q n) + 1) ^ 3 - 1 := by
     intro n
     induction' n with n hn
     case zero =>
+      dsimp [q₀]
+      have qp0 : q 0 = p 0 := by dsimp [q]; split_ifs; rfl; linarith
+      have qp1 : q 1 = p 1 := by dsimp [q]; split_ifs; rfl; linarith
+      rw [qp0, qp1]
+      dsimp [p]
+      simp
+      have : Int.floor (A ^ 3) < (Int.floor A + 1) ^ 3 - 1 := by
+        have : Int.floor A + Int.fract A = A := by apply Int.floor_add_fract
+        rw [← this]
+        ring_nf
+        simp
+        sorry
       sorry
-      -- dsimp [q₀]
-      -- simp
-      -- have qp0 : q 0 = p 0 := by dsimp [q]; split_ifs; rfl; linarith
-      -- have qp1 : q 1 = p 1 := by dsimp [q]; split_ifs; rfl; linarith
-      -- rw [qp0, qp1]
-      -- dsimp [p]
-      -- simp
-      -- have : Int.floor (A ^ 3) < (Int.floor A + 1) ^ 3 - 1 := by
-      --   have : Int.floor A + Int.fract A = A := by apply Int.floor_add_fract
-      --   rw [← this]
-      --   ring_nf
-      --   simp
-      --   sorry
-      -- sorry
     case succ =>
     dsimp [q]
     split_ifs
@@ -713,28 +721,27 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
       rw [hp₂] at hp₁
       dsimp only [p'] at hp₁
       apply Nat.cast_lt.1 hp₁
-    · have nsucc_eq_k : n.succ = k := by linarith
-      sorry
-      -- rw [nsucc_eq_k]
-      -- simp
-      -- dsimp [qq, qq']
-      -- have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
-      --   apply (lem6 n.succ (by linarith)).right
-      -- have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
-      --   rw [p']
-      --   simp
-      --   rw [← Real.rpow_natCast]
-      --   simp
-      -- rw [hp₂] at hp₁
-      -- dsimp only [p'] at hp₁
-      -- rw [nsucc_eq_k] at hp₁
-      -- apply Nat.cast_lt.1 hp₁
-    · have : n.succ = k := by linarith
-      sorry
-      -- rw [this]
-      -- simp
-      -- rw [qq]
-      -- exact (hqq' ⟨p k, h'⟩ 0).right.right.left
+    · have nsucc_eq_k : n + 1 = k := by linarith
+      rw [nsucc_eq_k]
+      simp
+      dsimp [qq, qq']
+      have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
+        apply (lem6 n.succ (by linarith)).right
+      have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
+        rw [p']
+        simp
+        rw [← Real.rpow_natCast]
+        simp
+      rw [hp₂] at hp₁
+      dsimp only [p'] at hp₁
+      have nsucc_eq_k : n.succ = k := by linarith
+      rw [nsucc_eq_k] at hp₁
+      apply Nat.cast_lt.1 hp₁
+    · have : n + 1 = k := by linarith
+      rw [this]
+      simp
+      rw [qq]
+      exact (hqq' ⟨p k, h'⟩ 0).right.right.left
     · rw [Nat.sub_add_comm]
       exact (hqq' ⟨p k, h'⟩ (n.succ - k)).right.right.left
       linarith
