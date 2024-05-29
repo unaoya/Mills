@@ -217,6 +217,7 @@ section
 
 -- variable (seq : ℕ → ℕ) (h : (n : ℕ) → (seq n) ^ 3 ≤ seq (n + 1)) (h' : (n : ℕ) → (npos : 0 < n) → seq (n + 1) < ((seq n) + 1) ^ 3 - 1) (seq1gt1 : 1 < seq 1)
 variable (seq : ℕ → ℕ) (h : (n : ℕ) → (seq n) ^ 3 ≤ seq (n + 1)) (h' : (n : ℕ) → seq (n + 1) < ((seq n) + 1) ^ 3 - 1) (seq1gt1 : 1 < seq 1)
+variable (h'' : (n : ℕ) → (if n = 0 then seq (n + 1) ≤ ((seq n) + 1) ^ 3 - 1 else seq (n + 1) < ((seq n) + 1) ^ 3 - 1))
 
 noncomputable def seq_left : (ℕ → ℕ) → (ℕ → ℝ) := fun seq n ↦ ((Nat.cast : ℕ → ℝ) (seq n)) ^ (1 / (Nat.cast : ℕ → ℝ) 3 ^ n)
 
@@ -251,9 +252,7 @@ lemma mono_left : Monotone (seq_left seq) := by
   rw [this, Nat.cast_le, add_comm]
   exact (h n)
 
-lemma str_anti_right : StrictAnti (seq_right seq) := by
-  apply strictAnti_nat_of_succ_lt
-  intro n
+lemma str_anti_right (n : ℕ) (npos : 0 < n) : seq_right seq (n + 1) < seq_right seq n := by
   have : 0 < (3 : ℝ) ^ (n + 1) := by norm_num
   rw [← Real.rpow_lt_rpow_iff (by apply Real.rpow_nonneg (by linarith [rpnonneg])) (by apply Real.rpow_nonneg (by linarith [rpnonneg])) this]
   rw [seq_right, seq_right]
@@ -268,13 +267,41 @@ lemma str_anti_right : StrictAnti (seq_right seq) := by
   rw [this, add_comm, ← lt_add_neg_iff_add_lt, ← sub_eq_add_neg]
   have : OfNat.ofNat 1 = (Nat.cast : ℕ → ℝ) 1 := by simp
   rw [this, ← Nat.cast_sub, Nat.cast_lt, add_comm, add_comm 1 (seq n)]
-  exact (h' n)
+  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
+  rw [if_neg (by linarith [npos])] at this
+  exact this
   rw [← one_pow 3]
   apply pow_le_pow_left
   linarith
   simp
 
-lemma anti_right : Antitone (seq_right seq) := StrictAnti.antitone (str_anti_right seq h')
+lemma anti_right : Antitone (seq_right seq) := by
+  apply antitone_nat_of_succ_le
+  intro n
+  have : 0 < (3 : ℝ) ^ (n + 1) := by norm_num
+  rw [← Real.rpow_le_rpow_iff (by apply Real.rpow_nonneg (by linarith [rpnonneg])) (by apply Real.rpow_nonneg (by linarith [rpnonneg])) this]
+  rw [seq_right, seq_right]
+  rw [← Real.rpow_mul (by linarith [rpnonneg]), ← Real.rpow_mul (by linarith [rpnonneg])]
+  ring_nf
+  field_simp
+  have : (1 + (Nat.cast : ℕ → ℝ) (seq n)) ^ (OfNat.ofNat 3 : ℝ) = (Nat.cast : ℕ → ℝ) ((1 + (seq n)) ^ 3) := by
+    simp
+    rw [← Real.rpow_natCast]
+    apply congrArg
+    simp
+  rw [this, add_comm, ← le_add_neg_iff_add_le, ← sub_eq_add_neg]
+  have : OfNat.ofNat 1 = (Nat.cast : ℕ → ℝ) 1 := by simp
+  rw [this, ← Nat.cast_sub, Nat.cast_le, add_comm, add_comm 1 (seq n)]
+  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
+  by_cases hn : n = 0
+  · rw [if_pos hn] at this
+    exact this
+  · rw [if_neg hn] at this
+    exact le_of_lt this
+  rw [← one_pow 3]
+  apply pow_le_pow_left
+  linarith
+  simp
 
 lemma bdd_left : BddAbove (Set.range (seq_left seq)) := by
   use (seq_right seq) 0
@@ -283,7 +310,7 @@ lemma bdd_left : BddAbove (Set.range (seq_left seq)) := by
   rw [← hn]
   calc
     (seq_left seq) n ≤ (seq_right seq) n := le_of_lt (left_lt_right seq n)
-    _ ≤ (seq_right seq) 0 := anti_right seq h' (by norm_num)
+    _ ≤ (seq_right seq) 0 := anti_right seq h'' (by norm_num)
 
 lemma bdd_right : BddBelow (Set.range (seq_right seq)) := by
   use (seq_left seq) 0
@@ -298,74 +325,96 @@ noncomputable def left_lim : ℝ := sSup (Set.range (seq_left seq))
 
 noncomputable def right_lim : ℝ := sInf (Set.range (seq_right seq))
 
-lemma left_sup : IsLUB (Set.range (seq_left seq)) (left_lim seq) := Real.isLUB_sSup (Set.range (seq_left seq)) ⟨(seq_left seq) 1, by simp⟩ (bdd_left seq h')
+lemma left_sup : IsLUB (Set.range (seq_left seq)) (left_lim seq) := Real.isLUB_sSup (Set.range (seq_left seq)) ⟨(seq_left seq) 1, by simp⟩ (bdd_left seq h'')
 
-lemma left_le_sup (n : ℕ) : (seq_left seq) n ≤ left_lim seq := (left_sup seq h').left ⟨n, rfl⟩
+lemma left_le_sup (n : ℕ) : (seq_left seq) n ≤ left_lim seq := (left_sup seq h'').left ⟨n, rfl⟩
 
-lemma left_lim_nonneg : 0 ≤ left_lim seq := by linarith [left_le_sup seq h' 1, left_nonneg seq 1]
+lemma left_lim_nonneg : 0 ≤ left_lim seq := by linarith [left_le_sup seq h'' 1, left_nonneg seq 1]
 
-lemma left_lim_gt_1 : 1 < left_lim seq := by linarith [left_gt_1 seq seq1gt1, left_le_sup seq h' 1]
+lemma left_lim_gt_1 : 1 < left_lim seq := by linarith [left_gt_1 seq seq1gt1, left_le_sup seq h'' 1]
 
 lemma right_inf : IsGLB (Set.range (seq_right seq)) (right_lim seq) := Real.is_glb_sInf (Set.range (seq_right seq)) ⟨(seq_right seq) 1, by simp⟩ (bdd_right seq h)
 
-lemma right_inf_lt (n : ℕ) : right_lim seq < (seq_right seq) n := by
+lemma right_inf_lt (n : ℕ) (npos : 0 < n) : right_lim seq < (seq_right seq) n := by
   by_contra hyp; push_neg at hyp
-  have : seq_right seq (n + 1) < seq_right seq n := by apply str_anti_right seq h'; linarith
+  have : seq_right seq (n + 1) < seq_right seq n := by apply str_anti_right seq h''; linarith
   have : seq_right seq (n + 1) < right_lim seq := by linarith
   have : right_lim seq ≤ seq_right seq (n + 1) := by apply (right_inf seq h).left; use (n + 1)
   linarith
 
 lemma left_sup_le_right_inf : left_lim seq ≤ right_lim seq := by
   by_contra hyp; push_neg at hyp
-  rcases IsLUB.exists_between (left_sup seq h') hyp with ⟨x, ⟨n, _⟩, h₁⟩
+  rcases IsLUB.exists_between (left_sup seq h'') hyp with ⟨x, ⟨n, _⟩, h₁⟩
   rcases IsGLB.exists_between (right_inf seq h) h₁.left with ⟨y, ⟨m, _⟩, h₃⟩
   let k := max n m
-  have : (seq_right seq) k ≤ (seq_right seq) m := anti_right seq h' (le_max_right n m)
+  have : (seq_right seq) k ≤ (seq_right seq) m := anti_right seq h'' (le_max_right n m)
   have : (seq_left seq) n ≤ (seq_left seq) k := mono_left seq h (le_max_left n m)
   have : (seq_left seq) k < (seq_right seq) k := left_lt_right seq k
   linarith
 
+lemma right_lim_nonneg : 0 ≤ right_lim seq := by calc
+  0 ≤ left_lim seq := by apply left_lim_nonneg seq h''
+  _ ≤ right_lim seq := by apply left_sup_le_right_inf seq h h''
+
 lemma left_pow_eq_seq (n : ℕ) : (Nat.cast : ℕ → ℝ) (seq n) ^ ((1 : ℝ) / 3 ^ n) = seq_left seq n := rfl
 
 lemma left_le_sup_pow (n : ℕ) : (Nat.cast : ℕ → ℝ) (seq n) ≤ (left_lim seq) ^ (3 ^ n) := by
-  rw [← Real.rpow_natCast, ← Real.rpow_inv_le_iff_of_pos (by linarith) (left_lim_nonneg seq h') (by norm_num)]
+  rw [← Real.rpow_natCast, ← Real.rpow_inv_le_iff_of_pos (by linarith) (left_lim_nonneg seq h'') (by norm_num)]
   field_simp
   rw [left_pow_eq_seq seq n]
-  exact left_le_sup seq h' n
+  exact left_le_sup seq h'' n
 
 lemma right_pow_eq_seq (n : ℕ) : ((Nat.cast : ℕ → ℝ) (seq n) + 1) ^ ((1 : ℝ) / 3 ^ n) = seq_right seq n := rfl
 
-lemma right_inf_pow_lt (n : ℕ) : (right_lim seq) ^ (3 ^ n) < (Nat.cast : ℕ → ℝ) (seq n + 1) := by
+lemma right_inf_pow_lt (n : ℕ) (npos : 0 < n) : (right_lim seq) ^ (3 ^ n) < (Nat.cast : ℕ → ℝ) (seq n + 1) := by
   rw [← Real.rpow_natCast, ← Real.lt_rpow_inv_iff_of_pos _ (by linarith) (by norm_num)]
   field_simp
   rw [right_pow_eq_seq seq n]
   apply right_inf_lt seq h
-  exact h'
-  linarith [left_sup_le_right_inf seq h h', left_lim_nonneg seq h']
+  exact h''
+  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
+  rw [if_neg (by linarith [npos])] at this
+  linarith [left_sup_le_right_inf seq h h'', left_lim_nonneg seq h'']
+  apply right_lim_nonneg seq h h''
 
-lemma left_floor_eq_seq (n : ℕ) : Nat.floor ((left_lim seq) ^ (3 ^ n)) = seq n := by
+lemma left_floor_eq_seq (n : ℕ) (npos : 0 < n) : Nat.floor ((left_lim seq) ^ (3 ^ n)) = seq n := by
     rw [Nat.floor_eq_iff]
     constructor
-    · exact left_le_sup_pow seq h' n
+    · exact left_le_sup_pow seq h'' n
     · calc
         (left_lim seq) ^ (3 ^ n) ≤ (right_lim seq) ^ (3 ^ n) := by
           rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-          apply (Real.rpow_le_rpow_iff (left_lim_nonneg seq h') (by linarith [left_sup_le_right_inf seq h h', left_lim_nonneg seq h']) (by norm_num)).2 (left_sup_le_right_inf seq h h')
-        _ < (Nat.cast : ℕ → ℝ) (seq n + 1) := right_inf_pow_lt seq h h' n
+          apply (Real.rpow_le_rpow_iff (left_lim_nonneg seq h'') (by linarith [left_sup_le_right_inf seq h h'', left_lim_nonneg seq h'']) (by norm_num)).2 (left_sup_le_right_inf seq h h'')
+        _ < (Nat.cast : ℕ → ℝ) (seq n + 1) := right_inf_pow_lt seq h h'' n npos
         _ = seq n + 1 := by simp
     rw [← Real.rpow_natCast]
-    apply Real.rpow_nonneg (left_lim_nonneg seq h')
+    apply Real.rpow_nonneg (left_lim_nonneg seq h'')
 
 end
+
+/-
+type mismatch
+  (hpp n).right.right.left
+has type
+  pp (n + 1) < (pp n + 1) ^ 3 - 1 : Prop
+but is expected to have type
+  if n = 0 then pp (n + 1) ≤ (pp n + 1) ^ 3 - 1 else pp (n + 1) < (pp n + 1) ^ 3 - 1 : Prop
+-/
+
+lemma aux' (n : ℕ) : if n = 0 then pp (n + 1) ≤ (pp n + 1) ^ 3 - 1 else pp (n + 1) < (pp n + 1) ^ 3 - 1 := by
+  split_ifs
+  · exact le_of_lt (hpp n).right.right.left
+  · exact (hpp n).right.right.left
 
 theorem exists_Mills : ∃ A : ℝ, Mills A := by
   have : 1 < pp 1 := by rw [pp]; linarith [(pp' 1).property, BHP_const_nat_ge2]
   use (left_lim pp)
   constructor
-  · exact (by linarith [(left_gt_1 pp this), (left_le_sup pp (fun n ↦(hpp n).right.right.left) 1)])
+  · exact (by linarith [(left_gt_1 pp this), (left_le_sup pp (fun n ↦ aux' n) 1)])
   · intro k h
-    rw [left_floor_eq_seq pp (fun n ↦ (hpp n).left) (fun n ↦ (hpp n).right.right.left) k, ← Nat.succ_pred_eq_of_pos h]
+    rw [left_floor_eq_seq pp (fun n ↦ (hpp n).left) (fun n ↦ aux' n) k, ← Nat.succ_pred_eq_of_pos h]
     exact (hpp k.pred).right.right.right
+    exact h
 
 def W := {x | Mills x}
 
@@ -623,25 +672,25 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
   let q₀ : ℕ → ℕ
   | 0 => 1
   | (n + 1) => if n + 1 ≤ k then p (n + 1) else qq ⟨p k, h'⟩ ((n + 1) - k)
-  have q₀_eq_q (n : ℕ) (npos : 0 < n) : q₀ n = q n := by
-    cases n
-    case zero => linarith
-    case succ => dsimp [q, q₀]
-  have h_q_le_k (n : ℕ) (npos : 0 < n) : n ≤ k → q n = p n := by
+  -- have q₀_eq_q (n : ℕ) (npos : 0 < n) : q₀ n = q n := by
+  --   cases n
+  --   case zero => linarith
+  --   case succ => dsimp [q, q₀]
+  have h_q_le_k (n : ℕ) (_ : 0 < n) : n ≤ k → q n = p n := by
     intro hn
     dsimp [q]
     split_ifs
     rfl
-  have h_q_gt_k : ∀ n, k < n → q n = qq ⟨p k, h'⟩ (n - k) := by
-    intro n hn
-    dsimp [q]
-    split_ifs
-    · linarith
-    · rfl
+  -- have h_q_gt_k : ∀ n, k < n → q n = qq ⟨p k, h'⟩ (n - k) := by
+  --   intro n hn
+  --   dsimp [q]
+  --   split_ifs
+  --   · linarith
+  --   · rfl
   let C' : ℝ := left_lim q
   have h_q_left : (n : ℕ) → q n ^ 3 ≤ q (n + 1) := by
     intro n
-    induction' n with n hn
+    induction' n with n _
     case zero =>
       have qp0 : q 0 = p 0 := by dsimp [q]; split_ifs; rfl; linarith
       have qp1 : q 1 = p 1 := by dsimp [q]; split_ifs; rfl; linarith
@@ -691,9 +740,9 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
       rw [this]
       exact (hqq' ⟨p k, h'⟩ (n.succ - k)).left
       linarith
-  have h_q_right : (n : ℕ) → q (n + 1) < ((q n) + 1) ^ 3 - 1 := by
+  have h_q_right : (n : ℕ) → (if n = 0 then q (n + 1) ≤ ((q n) + 1) ^ 3 - 1 else q (n + 1) < ((q n) + 1) ^ 3 - 1):= by
     intro n
-    induction' n with n hn
+    induction' n with n _
     case zero =>
       dsimp [q₀]
       have qp0 : q 0 = p 0 := by dsimp [q]; split_ifs; rfl; linarith
@@ -701,55 +750,86 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
       rw [qp0, qp1]
       dsimp [p]
       simp
-      have : Int.floor (A ^ 3) < (Int.floor A + 1) ^ 3 - 1 := by
-        have : Int.floor A + Int.fract A = A := by apply Int.floor_add_fract
-        rw [← this]
-        ring_nf
+      have : Nat.floor (A ^ 3) ≤ (Nat.floor A + 1) ^ 3 - 1 := by
+        have hh : Int.floor (A ^ 3) ≤ (Int.floor A + 1) ^ 3 - 1 := by
+          have : Int.floor A + Int.fract A = A := by apply Int.floor_add_fract
+          rw [← this]
+          ring_nf
+          simp
+          have : ⌊A⌋ * 3 + ⌊A⌋ ^ 2 * 3 + ⌊A⌋ ^ 3 = ⌊A⌋ * 3 + ⌊A⌋ ^ 2 * 3 + ⌊A⌋ ^ 3 + 1 - 1 := by ring
+          rw [this]
+          rw [Int.floor_le_sub_one_iff]
+          simp
+          have hh : Int.fract A < 1 := by apply Int.fract_lt_one
+          have : 0 < (Int.cast : ℤ → ℝ) ⌊A⌋ := by
+            have : 1 < A := Mills_gt_one
+            simp
+            rw [Int.floor_pos]
+            linarith
+          have : ↑⌊A⌋ * Int.fract A ^ 2 * 3 < ↑⌊A⌋ * 3 := by rw [mul_assoc, mul_comm _ 3, ← mul_assoc]; apply mul_lt_of_lt_one_right _ _; linarith; rw [sq_lt_one_iff]; exact hh; simp
+          have : ↑⌊A⌋ ^ 2 * Int.fract A * 3 < ↑⌊A⌋ ^ 2 * 3 := by rw [mul_assoc, mul_comm _ 3, ← mul_assoc]; apply mul_lt_of_lt_one_right _ hh; nlinarith
+          have : Int.fract A ^ 3 < 1 := by nlinarith
+          linarith
+        rw [← @Nat.cast_le ℤ]
         simp
-        sorry
-      sorry
+        have (x : ℝ) (xpos : 0 ≤ x) : (Nat.cast : ℕ → ℤ) (Nat.floor x) = Int.floor x := by
+          symm
+          rw [Int.floor_eq_iff]
+          constructor
+          · simp
+            apply Nat.floor_le xpos
+          · simp
+            apply Nat.lt_floor_add_one
+        rw [← this (A ^ 3), ← this A] at hh
+        exact hh
+        linarith [Mills_gt_one]
+        apply pow_nonneg (by linarith [Mills_gt_one]) 3
+      exact this
     case succ =>
-    dsimp [q]
-    split_ifs
-    · have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
-        apply (lem6 n.succ (by linarith)).right
-      have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
-        rw [p']
+      rw [if_neg (by simp)]
+      dsimp [q]
+      split_ifs
+      · have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
+          apply (lem6 n.succ (by linarith)).right
+        have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
+          rw [p']
+          simp
+          rw [← Real.rpow_natCast]
+          simp
+        rw [hp₂] at hp₁
+        dsimp only [p'] at hp₁
+        apply Nat.cast_lt.1 hp₁
+      · have nsucc_eq_k : n + 1 = k := by linarith
+        rw [nsucc_eq_k]
         simp
-        rw [← Real.rpow_natCast]
+        dsimp [qq, qq']
+        have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
+          apply (lem6 n.succ (by linarith)).right
+        have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
+          rw [p']
+          simp
+          rw [← Real.rpow_natCast]
+          simp
+        rw [hp₂] at hp₁
+        dsimp only [p'] at hp₁
+        have nsucc_eq_k : n.succ = k := by linarith
+        rw [nsucc_eq_k] at hp₁
+        apply Nat.cast_lt.1 hp₁
+      · have : n + 1 = k := by linarith
+        rw [this]
         simp
-      rw [hp₂] at hp₁
-      dsimp only [p'] at hp₁
-      apply Nat.cast_lt.1 hp₁
-    · have nsucc_eq_k : n + 1 = k := by linarith
-      rw [nsucc_eq_k]
-      simp
-      dsimp [qq, qq']
-      have hp₁ : p' (n.succ + 1) < (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 := by
-        apply (lem6 n.succ (by linarith)).right
-      have hp₂ : (p' n.succ + 1) ^ ((Nat.cast : ℕ → ℝ) 3) - 1 = (Nat.cast : ℕ → ℝ) ((p n.succ + 1) ^ 3 - 1) := by
-        rw [p']
-        simp
-        rw [← Real.rpow_natCast]
-        simp
-      rw [hp₂] at hp₁
-      dsimp only [p'] at hp₁
-      have nsucc_eq_k : n.succ = k := by linarith
-      rw [nsucc_eq_k] at hp₁
-      apply Nat.cast_lt.1 hp₁
-    · have : n + 1 = k := by linarith
-      rw [this]
-      simp
-      rw [qq]
-      exact (hqq' ⟨p k, h'⟩ 0).right.right.left
-    · rw [Nat.sub_add_comm]
-      exact (hqq' ⟨p k, h'⟩ (n.succ - k)).right.right.left
-      linarith
+        rw [qq]
+        exact (hqq' ⟨p k, h'⟩ 0).right.right.left
+      · rw [Nat.sub_add_comm]
+        exact (hqq' ⟨p k, h'⟩ (n + 1 - k)).right.right.left
+        linarith
   have q1_gt_1 : 1 < q 1 := by rw [h_q_le_k 1 (by linarith) (by linarith)]; apply pgt1 1; norm_num
-  have mono_left_q : Monotone (seq_left q) := by exact mono_left q h_q_left
-  have C'_floor (n : ℕ) : Nat.floor (C' ^ 3 ^ n) = q n := by
-    apply left_floor_eq_seq q h_q_left h_q_right n
-  have C'_gt_1 : 1 < C' := left_lim_gt_1 q h_q_right q1_gt_1
+--  have mono_left_q : Monotone (seq_left q) := by exact mono_left q h_q_left
+  have C'_floor (n : ℕ) (npos : 0 < n) : Nat.floor (C' ^ 3 ^ n) = q n := by
+    apply left_floor_eq_seq q h_q_left h_q_right n npos
+  have C'_gt_1 : 1 < C' := by
+    dsimp [C']
+    apply left_lim_gt_1 q q1_gt_1 h_q_right
   have Prime_q (n : ℕ) (npos : 0 < n) : Nat.Prime (q n) := by
     dsimp [q]
     split_ifs
@@ -765,8 +845,9 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
     · intro n hn
       rw [left_floor_eq_seq q h_q_left h_q_right n, ← Nat.succ_pred_eq_of_pos hn]
       exact Prime_q n.pred.succ (by linarith)
+      exact hn
   have C'ltA : C' < A := by
-    have hh₀ : Nat.floor (C' ^ 3 ^ (k + 1)) = q (k + 1) := by apply C'_floor
+    have hh₀ : Nat.floor (C' ^ 3 ^ (k + 1)) = q (k + 1) := by apply C'_floor; simp
     have hh₁ : q (k + 1) < p (k + 1) := by
       have : (Nat.cast : ℕ → ℝ) (q (k + 1)) < (Nat.cast : ℕ → ℝ) (p (k + 1)) := by calc
         (Nat.cast : ℕ → ℝ) (q (k + 1)) ≤ (p k) ^ (Nat.cast : ℕ → ℝ) 3 + (p k) ^ (3 * θ) := by
