@@ -15,33 +15,19 @@ open Filter Topology NNReal
 -- Wの定義でnを1以上としとけば問題なさそう。
 -- 命題5は自然数に0を入れても成立する。
 -- 問題はp0が素数にならないことだけ？
-
 -- 冪乗関係の話を使うときにいちいち正の数とか証明するのが面倒なので、一括で事前に書いておきたい。
 -- 使うのは3^nとかp n^kとかの形くらいに限られるはず？
-
 -- 実数乗と自然数乗の話を合わせるのが面倒なので、そこも最初にかっちりしておきたい。
-
 -- NNRealを使うと楽？
-
 -- 自然数を1以上に書き直す。ℕ+を使う。
-
 -- 補助的な不等式を整理しておく
+
 lemma nat_real_le (n m : ℕ) : (n : ℝ) ≤ m ↔ n ≤ m := by simp
 
--- 冪乗の不等式関係を整理しておく（名付けはライブラリを参考にしたい）
 lemma cubic_le (x y : ℝ) (xpos : 0 ≤ x) (ypos : 0 ≤ y) : x ^ ((1 : ℝ) / 3) ≤ y ↔ x ≤ y ^ 3 := by
   rw [← Real.rpow_natCast]
   simp
   apply Real.rpow_inv_le_iff_of_pos xpos ypos (by norm_num)
-
-lemma cubic_le' (x y : ℝ≥0) : x ^ ((1 : ℝ) / 3) ≤ y ↔ x ≤ y ^ 3 := by
-  rw [← NNReal.rpow_natCast]
-  apply NNReal.rpow_one_div_le_iff (by norm_num)
-
-lemma cubic_lt (x y : ℝ) (xpos : 0 ≤ x) (ypos : 0 ≤ y) : x ^ ((1 : ℝ) / 3) < y ↔ x < y ^ 3 := by
-  rw [← Real.rpow_natCast]
-  simp
-  apply Real.rpow_inv_lt_iff_of_pos xpos ypos (by norm_num)
 
 lemma lt_cubic (x y : ℝ) (xpos : 0 ≤ x) (ypos : 0 ≤ y) : x < y ^ ((1 : ℝ) / 3) ↔ x ^ 3 < y := by
   rw [← Real.rpow_natCast]
@@ -96,17 +82,10 @@ lemma floor_eq (x y : ℝ) (n : ℕ) (ypos : 0 < y) (h : Nat.floor (x ^ n) ≤ y
     exact this.symm
 
 -- 単調で有界な実数列は上限または下限に収束する
--- ライブラリにありそう。
-
-lemma monotone_converges_of_bdd_above_to_sup (f : ℕ → ℝ) (h₁ : Monotone f) (h₂ : BddAbove (Set.range f)) :
-  Filter.Tendsto f atTop (𝓝 (sSup (Set.range f))) := tendsto_atTop_isLUB h₁ (Real.isLUB_sSup (Set.range f) ⟨f 1, by simp⟩ h₂)
 
 lemma monotone_converges_of_bdd_above (f : ℕ → ℝ) (h₁ : Monotone f) (h₂ : BddAbove (Set.range f)) :
   ∃ A, IsLUB (Set.range f) A ∧ Filter.Tendsto f atTop (𝓝 A) :=
   ⟨sSup (Set.range f), ⟨Real.isLUB_sSup (Set.range f) ⟨f 1, by simp⟩ h₂, tendsto_atTop_isLUB h₁ (Real.isLUB_sSup (Set.range f) ⟨f 1, by simp⟩ h₂)⟩⟩
-
-lemma antitone_converges_of_bdd_below_to_inf (f : ℕ → ℝ) (h₁ : Antitone f) (h₂ : BddBelow (Set.range f)) :
-  Filter.Tendsto f atTop (𝓝 (sInf (Set.range f))) := tendsto_atTop_isGLB h₁ (Real.is_glb_sInf (Set.range f) ⟨f 1, by simp⟩ h₂)
 
 lemma antitone_converges_of_bdd_below (f : ℕ → ℝ) (h₁ : Antitone f) (h₂ : BddBelow (Set.range f)) :
   ∃ A, IsGLB (Set.range f) A ∧ Filter.Tendsto f atTop (𝓝 A) :=
@@ -150,7 +129,6 @@ lemma BHP_const_nat_BHP : ∀ x : ℕ, BHP_const_nat ≤ x → ∃ (p : ℕ), (x
   apply (Classical.choose_spec BHP).right
   apply this
 
--- def Step : ℕ → ℕ → Prop := fun p q => p ^ 3 ≤ q ∧ q < (p + 1) ^ 3 - 1 ∧ Nat.Prime q
 
 def Step' : ℕ → ℕ → Prop := fun p q => p ^ 3 ≤ q ∧ (Nat.cast : ℕ → ℝ) q ≤ (Nat.cast : ℕ → ℝ) p ^ (Nat.cast : ℕ → ℝ) 3 + (Nat.cast : ℕ → ℝ) p ^ (((Nat.cast : ℕ → ℝ) 3) * θ) ∧ q < (p + 1) ^ 3 - 1 ∧ Nat.Prime q
 
@@ -391,15 +369,6 @@ lemma left_floor_eq_seq (n : ℕ) (npos : 0 < n) : Nat.floor ((left_lim seq) ^ (
     apply Real.rpow_nonneg (left_lim_nonneg seq h'')
 
 end
-
-/-
-type mismatch
-  (hpp n).right.right.left
-has type
-  pp (n + 1) < (pp n + 1) ^ 3 - 1 : Prop
-but is expected to have type
-  if n = 0 then pp (n + 1) ≤ (pp n + 1) ^ 3 - 1 else pp (n + 1) < (pp n + 1) ^ 3 - 1 : Prop
--/
 
 lemma aux' (n : ℕ) : if n = 0 then pp (n + 1) ≤ (pp n + 1) ^ 3 - 1 else pp (n + 1) < (pp n + 1) ^ 3 - 1 := by
   split_ifs
@@ -1070,23 +1039,14 @@ noncomputable def min_dist (x : ℝ) : ℝ := |x - round x|
 
 lemma min_dist_fract (x : ℝ) : min_dist x = min (Int.fract x) (1 - Int.fract x) := abs_sub_round_eq_min x
 
-lemma floor_cast (x : ℝ) (xpos : 0 ≤ x) : (Nat.cast : ℕ → ℝ) (Nat.floor x) = (Int.cast : ℤ → ℝ) (Int.floor x) := by
-  apply natCast_floor_eq_intCast_floor
-  exact xpos
-
--- Nat.floorにする必要ある？Int.floorでもいい？
 lemma min_dist_floor (x : ℝ) (xpos : 0 ≤ x) : min_dist x ≤ |x - Nat.floor x| := by
   rw [natCast_floor_eq_intCast_floor xpos, min_dist_fract, Int.self_sub_floor, abs_of_nonneg (Int.fract_nonneg x)]
   exact min_le_left _ _
-
--- notation: "∥" x "∥" => min_dist A
 
 -- n₀は実数が本来かもしれないが、こっちも出るはず
 axiom Mahler (r : ℚ) (ε : ℝ) (h₁ : 1 < r) (h₂ : ∀ n : ℤ, ↑n ≠ r) :
 ∃ n₀ : ℕ, n₀ > 0 ∧ ∀ n ≥ n₀, min_dist (r ^ (n : ℝ)) > Real.exp (-ε * (n : ℝ))
 
-
--- Aが自然数ならp1=A^3がそもそも素数ではないのでは？A>1も合わせる。元の証明より簡単にはなる？
 lemma A_not_nat : ∀ n : ℕ, A ≠ n := by
   intro n h
   have : p 1 = n ^ 3 :=  by

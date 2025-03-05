@@ -1,3 +1,9 @@
--- This module serves as the root of the `Mills` library.
--- Import modules here that should be built as part of the library.
-import «Mills».Basic
+import Mills.Basic
+import Mills.Defs
+import Mills.Mills
+import Mills.lem6
+import Mills.lem7
+import Mills.prop4
+import Mills.prop5
+import Mills.sequence
+import Mills.thm3
