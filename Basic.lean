@@ -1,13 +1,6 @@
-import Init.Data.Nat.Basic
-import Mathlib.Algebra.Order.Ring.Lemmas
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.Nat.Prime
-import Mathlib.Data.Real.Irrational
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mills.Lemmas
+import Mills.Defs
+import Mills.thm3
 
 open Filter Topology NNReal
 
@@ -22,374 +15,11 @@ open Filter Topology NNReal
 -- 自然数を1以上に書き直す。ℕ+を使う。
 -- 補助的な不等式を整理しておく
 
-lemma nat_real_le (n m : ℕ) : (n : ℝ) ≤ m ↔ n ≤ m := by simp
-
-lemma cubic_le (x y : ℝ) (xpos : 0 ≤ x) (ypos : 0 ≤ y) : x ^ ((1 : ℝ) / 3) ≤ y ↔ x ≤ y ^ 3 := by
-  rw [← Real.rpow_natCast]
-  simp
-  apply Real.rpow_inv_le_iff_of_pos xpos ypos (by norm_num)
-
-lemma lt_cubic (x y : ℝ) (xpos : 0 ≤ x) (ypos : 0 ≤ y) : x < y ^ ((1 : ℝ) / 3) ↔ x ^ 3 < y := by
-  rw [← Real.rpow_natCast]
-  simp
-  apply Real.lt_rpow_inv_iff_of_pos xpos ypos (by norm_num)
-
-lemma pow_le (x : ℝ) (n m : ℕ) (hx : 1 ≤ x) (hnm : n ≤ m) : x ^ n ≤ x ^ m := by
-  rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-  apply Real.rpow_le_rpow_of_exponent_le hx (by norm_num [hnm])
-
-lemma pow_lt (x y : ℝ) (n : ℕ) (hx : 1 < x) (hnm : y < n) : x ^ y < x ^ n := by
-  rw [← Real.rpow_natCast]
-  apply Real.rpow_lt_rpow_of_exponent_lt hx (by norm_num [hnm])
-
-lemma pow_le_left (x y : ℝ) (n : ℕ) (hx : 1 ≤ x) (hxy : x ≤ y) : x ^ n ≤ y ^ n := by
-  rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-  apply Real.rpow_le_rpow (by linarith) hxy (by norm_num)
-
-lemma pow_lt_left (x y : ℝ) (n : ℕ) (npos: 0 < n) (hx : 1 < x) (hxy : x < y) : x ^ n < y ^ n := by
-  rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-  apply Real.rpow_lt_rpow (by linarith) hxy (by norm_num [npos])
-
-lemma floor_le (x : ℝ) (n : ℕ) (hx : 0 ≤ x) : Nat.floor (x ^ n) ≤ x ^ n := by
-  apply Nat.floor_le
-  rw [← Real.rpow_natCast]
-  apply Real.rpow_nonneg (by linarith) n
-
-lemma floor_rpow_le (x : ℝ) (y : ℝ) (hx : 0 ≤ x) : (Nat.cast : ℕ → ℝ) (Nat.floor (x ^ y)) ≤ x ^ y := by
-  apply Nat.floor_le
-  apply Real.rpow_nonneg (by linarith) y
-
--- 冪乗と型の変換を整理しておく
-lemma h₃ (n k : ℕ) : (n : ℝ) ^ k = (n ^ k : ℝ) := by ring
-
-lemma Natcast_inj (m n : ℕ) : (Nat.cast : ℕ → ℝ) n = (Nat.cast : ℕ → ℝ) m ↔ n = m := by simp
-
-lemma cast_nat_pow_eq_rpow_cast (n m : ℕ) : (Nat.cast : ℕ → ℝ) (Nat.pow n m) = ((Nat.cast : ℕ → ℝ) n) ^ ((Nat.cast : ℕ → ℝ) m) := by simp --抽象化
-
--- floor周りの計算も整理しておく
-
-lemma hfloor (n : ℕ) (x : ℝ) (h : n ≤ Nat.floor x) (xpos : 0 ≤ x) : n ≤ x := by calc
-  (n : ℝ) ≤ Nat.floor x := by apply (nat_real_le n _).2 h
-  _ ≤ x := by apply Nat.floor_le xpos
-
-lemma floor_eq (x y : ℝ) (n : ℕ) (ypos : 0 < y) (h : Nat.floor (x ^ n) ≤ y ^ n ∧ y ^ n < Nat.floor (x ^ n) + 1) : Nat.floor (x ^ n) = Nat.floor (y ^ n) := by
-    have h' : 0 ≤ y ^ n := by
-      rw [← Real.rpow_natCast]
-      apply Real.rpow_nonneg (by linarith [le_of_lt ypos])
-    have : Nat.floor (y ^ n) = Nat.floor (x ^ n) := by
-      rw [Nat.floor_eq_iff h']
-      exact h
-    exact this.symm
-
--- 単調で有界な実数列は上限または下限に収束する
-
-lemma monotone_converges_of_bdd_above (f : ℕ → ℝ) (h₁ : Monotone f) (h₂ : BddAbove (Set.range f)) :
-  ∃ A, IsLUB (Set.range f) A ∧ Filter.Tendsto f atTop (𝓝 A) :=
-  ⟨sSup (Set.range f), ⟨Real.isLUB_sSup (Set.range f) ⟨f 1, by simp⟩ h₂, tendsto_atTop_isLUB h₁ (Real.isLUB_sSup (Set.range f) ⟨f 1, by simp⟩ h₂)⟩⟩
-
-lemma antitone_converges_of_bdd_below (f : ℕ → ℝ) (h₁ : Antitone f) (h₂ : BddBelow (Set.range f)) :
-  ∃ A, IsGLB (Set.range f) A ∧ Filter.Tendsto f atTop (𝓝 A) :=
-  ⟨sInf (Set.range f), ⟨Real.is_glb_sInf (Set.range f) ⟨f 1, by simp⟩ h₂, tendsto_atTop_isGLB h₁ (Real.is_glb_sInf (Set.range f) ⟨f 1, by simp⟩ h₂)⟩⟩
-
--- ここから本題
-def θ : ℝ := 0.525
-noncomputable def θ' : ℝ≥0 := 0.525
-
--- 名前は変えたほうがいいかも。元の文章では最小のものをミルズ数と呼ぶので。
--- 自然数の範囲を変える代わりにここを変えれば大丈夫？
-def Mills (x : ℝ) : Prop := 1 < x ∧ ∀ k : ℕ, 0 < k → Nat.Prime (Nat.floor (x ^ (3 ^ k)))
-def Mills' (x : ℝ≥0) : Prop := 1 < x ∧ ∀ k : ℕ, 0 < k → Nat.Prime (Nat.floor (x ^ (3 ^ k)))
-
-def Mills_lb (x : ℝ) : Mills x → 2 ^ ((1 : ℝ) / 3) ≤ x := by
-  intro h
-  have h₂ : 2 ≤ x ^ 3 := hfloor 2 (x ^ 3) (Nat.prime_def_lt.1 (h.right 1 (by linarith))).1 (pow_nonneg (by linarith [h.left]) 3)
-  apply (cubic_le 2 x (by norm_num) (by linarith [h.left])).2 h₂
-
-
--- axiomがいいか、引用だけするけど証明はしない定理の扱い
--- xを自然数としたが問題あるか？
-axiom BHP : ∃ (x₀ : ℝ), 2 ≤ x₀ ∧ ∀ (x : ℕ), x ≥ x₀ → ∃ (p : ℕ), (x ≤ p ∧ p ≤ x + ((Nat.cast : ℕ → ℝ) x) ^ θ ∧ Nat.Prime p)
-
-noncomputable def BHP_const : ℝ := Classical.choose BHP
-
-lemma BHP_const_ge2 : 2 ≤ BHP_const := (Classical.choose_spec BHP).left
-
-noncomputable def BHP_const_nat : ℕ := Nat.ceil BHP_const
-
-lemma BHP_const_nat_ge2 : 2 ≤ BHP_const_nat := by
-  have : Nat.ceil ((Nat.cast : ℕ → ℝ) 2) ≤ Nat.ceil BHP_const := Nat.ceil_le_ceil 2 BHP_const BHP_const_ge2
-  rw [Nat.ceil_natCast] at this
-  exact this
-
-lemma BHP_const_nat_BHP : ∀ x : ℕ, BHP_const_nat ≤ x → ∃ (p : ℕ), (x ≤ p ∧ p ≤ x + ((Nat.cast : ℕ → ℝ) x) ^ θ ∧ Nat.Prime p) := by
-  intro x hx
-  have : BHP_const ≤ x := by calc
-    BHP_const ≤ BHP_const_nat := by apply Nat.le_ceil
-    _ ≤ x := Nat.cast_le.2 hx
-  apply (Classical.choose_spec BHP).right
-  apply this
-
-
-def Step' : ℕ → ℕ → Prop := fun p q => p ^ 3 ≤ q ∧ (Nat.cast : ℕ → ℝ) q ≤ (Nat.cast : ℕ → ℝ) p ^ (Nat.cast : ℕ → ℝ) 3 + (Nat.cast : ℕ → ℝ) p ^ (((Nat.cast : ℕ → ℝ) 3) * θ) ∧ q < (p + 1) ^ 3 - 1 ∧ Nat.Prime q
-
-lemma Step_aux (n m : ℕ) (h : n ^ 3 ≤ m) (h' : BHP_const_nat ≤ n) : BHP_const_nat ≤ m := by
-  have : 3 ≠ 0 := by linarith [BHP_const_nat_ge2]
-  linarith [Nat.le_self_pow this n]
-
---これは一般的な補題なので外に切り出す、後でも再証明してる？
-lemma aux : ∀ x : ℝ, BHP_const ≤ x → x ^ (Nat.cast : (ℕ → ℝ)) 3 + x ^ ((Nat.cast : ℕ → ℝ) 3 * θ) < (x + 1) ^ (Nat.cast : ℕ → ℝ) 3 - 1 := by
-  intro x hx
-  have : (Nat.cast : (ℕ → ℝ)) 3 * θ < (Nat.cast : (ℕ → ℝ)) 2 := by rw [θ]; norm_num;
-  calc
-    x ^ (Nat.cast : (ℕ → ℝ)) 3 + x ^ ((Nat.cast : (ℕ → ℝ)) 3 * θ) < x ^ (Nat.cast : (ℕ → ℝ)) 3 + x ^ (Nat.cast : (ℕ → ℝ)) 2 := add_lt_add_left (Real.rpow_lt_rpow_of_exponent_lt (by linarith [BHP_const_ge2]) this) (x ^ (Nat.cast : (ℕ → ℝ)) 3)
-    _ ≤ x ^ (Nat.cast : (ℕ → ℝ)) 3 + 3 * x ^ (Nat.cast : (ℕ → ℝ)) 2 := by
-      have : 0 ≤ x ^ (Nat.cast : (ℕ → ℝ)) 2 := Real.rpow_nonneg (by linarith [BHP_const_ge2]) ((Nat.cast : ℕ → ℝ) 2)
-      linarith
-    _ ≤ x ^ (Nat.cast : (ℕ → ℝ)) 3 + 3 * x ^ (Nat.cast : (ℕ → ℝ)) 2 + 3 * x := by linarith [BHP_const_ge2]
-    _ = (x + 1) ^ (Nat.cast : (ℕ → ℝ)) 3 - 1 := by rw [Real.rpow_natCast, Real.rpow_natCast, Real.rpow_natCast]; ring_nf
-
-lemma Stepex : ∀ p : ℕ, BHP_const_nat ≤ p → ∃ (q : ℕ), Step' p q := by
-  intro p hp
-  have hp' : BHP_const ≤ p := by calc
-    BHP_const ≤ BHP_const_nat := by apply Nat.le_ceil
-    _ ≤ p := by rw [Nat.cast_le]; exact hp
-  have : BHP_const_nat ≤ p ^ 3 := by calc
-    BHP_const_nat ≤ p := hp
-    _ ≤ p ^ 3 := by apply Nat.le_self_pow (by linarith)
-  rcases BHP_const_nat_BHP (p ^ 3) this with ⟨q, hq₁, hq₂, hq₃⟩
-  use q
-  have hq₅ : (Nat.cast : ℕ → ℝ) q ≤ (Nat.cast : ℕ → ℝ) p ^ (Nat.cast : ℕ → ℝ) 3 + (Nat.cast : ℕ → ℝ) p ^ (((Nat.cast : ℕ → ℝ) 3) * θ) := by
-    have : (Nat.cast : ℕ → ℝ) (p ^ 3) = (Nat.cast : ℕ → ℝ) p ^ (Nat.cast : ℕ → ℝ) 3 := by simp [← Real.rpow_natCast]
-    rw [this, ← Real.rpow_mul (by linarith [BHP_const_ge2])] at hq₂
-    exact hq₂
-  have hq₄ : q < (p + 1) ^ 3 - 1 := by
-    have : (Nat.cast : (ℕ → ℝ)) q < (Nat.cast : (ℕ → ℝ)) ((p + 1) ^ 3 - 1) := by calc
-      (Nat.cast : (ℕ → ℝ)) q ≤ (Nat.cast : ℕ → ℝ) p ^ (Nat.cast : ℕ → ℝ) 3 + (Nat.cast : ℕ → ℝ) p ^ (((Nat.cast : ℕ → ℝ) 3) * θ) := hq₅
-      _ <  (((Nat.cast : (ℕ → ℝ)) p + 1) ^ (Nat.cast : (ℕ → ℝ)) 3 - 1) := aux p hp'
-      _ = (Nat.cast : (ℕ → ℝ)) ((p + 1) ^ 3 - 1) := by simp; rw [← Real.rpow_natCast]; ring_nf
-    exact Nat.cast_lt.1 this
-  exact ⟨hq₁, hq₅, hq₄, hq₃⟩
-
-noncomputable instance (m : ℕ) : DecidablePred (Step' m) := fun _ ↦ And.decidable
-
-def NgeBHP : Type := {n : ℕ // BHP_const_nat ≤ n}
-
--- defじゃなくてletとかで証明の内部でやりたいけど、できる？
--- これはAを使って作ったやつじゃなくて、適当な初期値から作ったやつ。
-noncomputable def pp' : ℕ → NgeBHP
-| 0 => ⟨BHP_const_nat, le_refl BHP_const_nat⟩
-| (n + 1) => ⟨Nat.find (Stepex (pp' n).val (pp' n).property), Step_aux (pp' n).val (Nat.find (Stepex (pp' n).val (pp' n).property)) (Nat.find_spec (Stepex (pp' n).val (pp' n).property)).left (pp' n).property⟩
-
-noncomputable def pp : ℕ → ℕ := fun n ↦ (pp' n).val
-
-lemma hpp' : ∀ k : ℕ, Step' (pp k) (pp (k + 1)) := by intro k; exact Nat.find_spec (Stepex (pp' k).val (pp' k).property)
-
-lemma hpp : ∀ k : ℕ, (pp k) ^ 3 ≤ pp (k + 1) ∧ (Nat.cast : ℕ → ℝ) (pp (k + 1)) ≤ (Nat.cast : ℕ → ℝ) (pp k) ^ (Nat.cast : ℕ → ℝ) 3 + (Nat.cast : ℕ → ℝ) (pp k) ^ (((Nat.cast : ℕ → ℝ) 3) * θ) ∧ pp (k + 1) < ((pp k) + 1) ^ 3 - 1 ∧ Nat.Prime (pp (k + 1)) := fun k ↦ hpp' k
-
-lemma pnonneg (n : ℕ) : 0 ≤ pp n := by linarith [(Nat.prime_def_lt.1 (hpp n).2.2.2).1]
-
-lemma rpnonneg (n : ℕ) : 0 ≤ (Nat.cast : ℕ → ℝ) (pp n) := by apply Nat.cast_nonneg
-
--- 不等式条件から収束についての結論を導くところを抽象化する？
-section
-
--- variable (seq : ℕ → ℕ) (h : (n : ℕ) → (seq n) ^ 3 ≤ seq (n + 1)) (h' : (n : ℕ) → (npos : 0 < n) → seq (n + 1) < ((seq n) + 1) ^ 3 - 1) (seq1gt1 : 1 < seq 1)
-variable (seq : ℕ → ℕ) (h : (n : ℕ) → (seq n) ^ 3 ≤ seq (n + 1)) (h' : (n : ℕ) → seq (n + 1) < ((seq n) + 1) ^ 3 - 1) (seq1gt1 : 1 < seq 1)
-variable (h'' : (n : ℕ) → (if n = 0 then seq (n + 1) ≤ ((seq n) + 1) ^ 3 - 1 else seq (n + 1) < ((seq n) + 1) ^ 3 - 1))
-
-noncomputable def seq_left : (ℕ → ℕ) → (ℕ → ℝ) := fun seq n ↦ ((Nat.cast : ℕ → ℝ) (seq n)) ^ (1 / (Nat.cast : ℕ → ℝ) 3 ^ n)
-
-noncomputable def seq_right : (ℕ → ℕ) → (ℕ → ℝ) := fun seq n ↦ ((Nat.cast : ℕ → ℝ) (seq n) + 1) ^ (1 / (Nat.cast : ℕ → ℝ) 3 ^ n)
-
-lemma rseqnonneg (n : ℕ) : 0 ≤ (Nat.cast : ℕ → ℝ) (seq n) := by simp
-
-lemma left_nonneg (n : ℕ) : 0 ≤ seq_left seq n := by rw [seq_left]; apply Real.rpow_nonneg (by linarith)
-
-lemma left_gt_1 : 1 < seq_left seq 1 := by
-  rw [seq_left]; simp; rw [Real.lt_rpow_inv_iff_of_pos (by norm_num) (by simp) (by norm_num)]; simp;
-  exact seq1gt1
-
-lemma left_lt_right (n : ℕ) : (seq_left seq) n < (seq_right seq) n := by
-  rw [seq_left, seq_right]
-  apply Real.rpow_lt_rpow (by apply rseqnonneg) (by linarith) (by norm_num)
-
-lemma mono_left : Monotone (seq_left seq) := by
-  apply monotone_nat_of_le_succ
-  intro n
-  rw [seq_left, seq_left]
-  have : 0 < (Nat.cast : ℕ → ℝ) 3 ^ (n + 1) := by norm_num
-  rw [← Real.rpow_le_rpow_iff (by apply Real.rpow_nonneg (by apply rseqnonneg)) (by apply Real.rpow_nonneg (by apply rseqnonneg)) this]
-  rw [← Real.rpow_mul (by apply rseqnonneg), ← Real.rpow_mul (by apply rseqnonneg), div_mul, div_mul, ← div_mul]
-  ring_nf
-  field_simp
-  have : ((Nat.cast : ℕ → ℝ) (seq n)) ^ (OfNat.ofNat 3 : ℝ) = (Nat.cast : ℕ → ℝ) ((seq n) ^ 3) := by
-    simp
-    rw [← Real.rpow_natCast]
-    apply congrArg
-    simp
-  rw [this, Nat.cast_le, add_comm]
-  exact (h n)
-
-lemma str_anti_right (n : ℕ) (npos : 0 < n) : seq_right seq (n + 1) < seq_right seq n := by
-  have : 0 < (3 : ℝ) ^ (n + 1) := by norm_num
-  rw [← Real.rpow_lt_rpow_iff (by apply Real.rpow_nonneg (by linarith [rpnonneg])) (by apply Real.rpow_nonneg (by linarith [rpnonneg])) this]
-  rw [seq_right, seq_right]
-  rw [← Real.rpow_mul (by linarith [rpnonneg]), ← Real.rpow_mul (by linarith [rpnonneg])]
-  ring_nf
-  field_simp
-  have : (1 + (Nat.cast : ℕ → ℝ) (seq n)) ^ (OfNat.ofNat 3 : ℝ) = (Nat.cast : ℕ → ℝ) ((1 + (seq n)) ^ 3) := by
-    simp
-    rw [← Real.rpow_natCast]
-    apply congrArg
-    simp
-  rw [this, add_comm, ← lt_add_neg_iff_add_lt, ← sub_eq_add_neg]
-  have : OfNat.ofNat 1 = (Nat.cast : ℕ → ℝ) 1 := by simp
-  rw [this, ← Nat.cast_sub, Nat.cast_lt, add_comm, add_comm 1 (seq n)]
-  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
-  rw [if_neg (by linarith [npos])] at this
-  exact this
-  rw [← one_pow 3]
-  apply pow_le_pow_left
-  linarith
-  simp
-
-lemma anti_right : Antitone (seq_right seq) := by
-  apply antitone_nat_of_succ_le
-  intro n
-  have : 0 < (3 : ℝ) ^ (n + 1) := by norm_num
-  rw [← Real.rpow_le_rpow_iff (by apply Real.rpow_nonneg (by linarith [rpnonneg])) (by apply Real.rpow_nonneg (by linarith [rpnonneg])) this]
-  rw [seq_right, seq_right]
-  rw [← Real.rpow_mul (by linarith [rpnonneg]), ← Real.rpow_mul (by linarith [rpnonneg])]
-  ring_nf
-  field_simp
-  have : (1 + (Nat.cast : ℕ → ℝ) (seq n)) ^ (OfNat.ofNat 3 : ℝ) = (Nat.cast : ℕ → ℝ) ((1 + (seq n)) ^ 3) := by
-    simp
-    rw [← Real.rpow_natCast]
-    apply congrArg
-    simp
-  rw [this, add_comm, ← le_add_neg_iff_add_le, ← sub_eq_add_neg]
-  have : OfNat.ofNat 1 = (Nat.cast : ℕ → ℝ) 1 := by simp
-  rw [this, ← Nat.cast_sub, Nat.cast_le, add_comm, add_comm 1 (seq n)]
-  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
-  by_cases hn : n = 0
-  · rw [if_pos hn] at this
-    exact this
-  · rw [if_neg hn] at this
-    exact le_of_lt this
-  rw [← one_pow 3]
-  apply pow_le_pow_left
-  linarith
-  simp
-
-lemma bdd_left : BddAbove (Set.range (seq_left seq)) := by
-  use (seq_right seq) 0
-  intro x hx
-  rcases hx with ⟨n, hn⟩
-  rw [← hn]
-  calc
-    (seq_left seq) n ≤ (seq_right seq) n := le_of_lt (left_lt_right seq n)
-    _ ≤ (seq_right seq) 0 := anti_right seq h'' (by norm_num)
-
-lemma bdd_right : BddBelow (Set.range (seq_right seq)) := by
-  use (seq_left seq) 0
-  intro x hx
-  rcases hx with ⟨n, hn⟩
-  rw [← hn]
-  calc
-    (seq_left seq) 0 ≤ (seq_left seq) n := mono_left seq h (by norm_num)
-    _ ≤ (seq_right seq) n := le_of_lt (left_lt_right seq n)
-
-noncomputable def left_lim : ℝ := sSup (Set.range (seq_left seq))
-
-noncomputable def right_lim : ℝ := sInf (Set.range (seq_right seq))
-
-lemma left_sup : IsLUB (Set.range (seq_left seq)) (left_lim seq) := Real.isLUB_sSup (Set.range (seq_left seq)) ⟨(seq_left seq) 1, by simp⟩ (bdd_left seq h'')
-
-lemma left_le_sup (n : ℕ) : (seq_left seq) n ≤ left_lim seq := (left_sup seq h'').left ⟨n, rfl⟩
-
-lemma left_lim_nonneg : 0 ≤ left_lim seq := by linarith [left_le_sup seq h'' 1, left_nonneg seq 1]
-
-lemma left_lim_gt_1 : 1 < left_lim seq := by linarith [left_gt_1 seq seq1gt1, left_le_sup seq h'' 1]
-
-lemma right_inf : IsGLB (Set.range (seq_right seq)) (right_lim seq) := Real.is_glb_sInf (Set.range (seq_right seq)) ⟨(seq_right seq) 1, by simp⟩ (bdd_right seq h)
-
-lemma right_inf_lt (n : ℕ) (npos : 0 < n) : right_lim seq < (seq_right seq) n := by
-  by_contra hyp; push_neg at hyp
-  have : seq_right seq (n + 1) < seq_right seq n := by apply str_anti_right seq h''; linarith
-  have : seq_right seq (n + 1) < right_lim seq := by linarith
-  have : right_lim seq ≤ seq_right seq (n + 1) := by apply (right_inf seq h).left; use (n + 1)
-  linarith
-
-lemma left_sup_le_right_inf : left_lim seq ≤ right_lim seq := by
-  by_contra hyp; push_neg at hyp
-  rcases IsLUB.exists_between (left_sup seq h'') hyp with ⟨x, ⟨n, _⟩, h₁⟩
-  rcases IsGLB.exists_between (right_inf seq h) h₁.left with ⟨y, ⟨m, _⟩, h₃⟩
-  let k := max n m
-  have : (seq_right seq) k ≤ (seq_right seq) m := anti_right seq h'' (le_max_right n m)
-  have : (seq_left seq) n ≤ (seq_left seq) k := mono_left seq h (le_max_left n m)
-  have : (seq_left seq) k < (seq_right seq) k := left_lt_right seq k
-  linarith
-
-lemma right_lim_nonneg : 0 ≤ right_lim seq := by calc
-  0 ≤ left_lim seq := by apply left_lim_nonneg seq h''
-  _ ≤ right_lim seq := by apply left_sup_le_right_inf seq h h''
-
-lemma left_pow_eq_seq (n : ℕ) : (Nat.cast : ℕ → ℝ) (seq n) ^ ((1 : ℝ) / 3 ^ n) = seq_left seq n := rfl
-
-lemma left_le_sup_pow (n : ℕ) : (Nat.cast : ℕ → ℝ) (seq n) ≤ (left_lim seq) ^ (3 ^ n) := by
-  rw [← Real.rpow_natCast, ← Real.rpow_inv_le_iff_of_pos (by linarith) (left_lim_nonneg seq h'') (by norm_num)]
-  field_simp
-  rw [left_pow_eq_seq seq n]
-  exact left_le_sup seq h'' n
-
-lemma right_pow_eq_seq (n : ℕ) : ((Nat.cast : ℕ → ℝ) (seq n) + 1) ^ ((1 : ℝ) / 3 ^ n) = seq_right seq n := rfl
-
-lemma right_inf_pow_lt (n : ℕ) (npos : 0 < n) : (right_lim seq) ^ (3 ^ n) < (Nat.cast : ℕ → ℝ) (seq n + 1) := by
-  rw [← Real.rpow_natCast, ← Real.lt_rpow_inv_iff_of_pos _ (by linarith) (by norm_num)]
-  field_simp
-  rw [right_pow_eq_seq seq n]
-  apply right_inf_lt seq h
-  exact h''
-  have : (if n = 0 then seq (n + 1) ≤ (seq n + 1) ^ 3 - 1 else seq (n + 1) < (seq n + 1) ^ 3 - 1) := h'' n
-  rw [if_neg (by linarith [npos])] at this
-  linarith [left_sup_le_right_inf seq h h'', left_lim_nonneg seq h'']
-  apply right_lim_nonneg seq h h''
-
-lemma left_floor_eq_seq (n : ℕ) (npos : 0 < n) : Nat.floor ((left_lim seq) ^ (3 ^ n)) = seq n := by
-    rw [Nat.floor_eq_iff]
-    constructor
-    · exact left_le_sup_pow seq h'' n
-    · calc
-        (left_lim seq) ^ (3 ^ n) ≤ (right_lim seq) ^ (3 ^ n) := by
-          rw [← Real.rpow_natCast, ← Real.rpow_natCast]
-          apply (Real.rpow_le_rpow_iff (left_lim_nonneg seq h'') (by linarith [left_sup_le_right_inf seq h h'', left_lim_nonneg seq h'']) (by norm_num)).2 (left_sup_le_right_inf seq h h'')
-        _ < (Nat.cast : ℕ → ℝ) (seq n + 1) := right_inf_pow_lt seq h h'' n npos
-        _ = seq n + 1 := by simp
-    rw [← Real.rpow_natCast]
-    apply Real.rpow_nonneg (left_lim_nonneg seq h'')
-
-end
-
-lemma aux' (n : ℕ) : if n = 0 then pp (n + 1) ≤ (pp n + 1) ^ 3 - 1 else pp (n + 1) < (pp n + 1) ^ 3 - 1 := by
-  split_ifs
-  · exact le_of_lt (hpp n).right.right.left
-  · exact (hpp n).right.right.left
-
-theorem exists_Mills : ∃ A : ℝ, Mills A := by
-  have : 1 < pp 1 := by rw [pp]; linarith [(pp' 1).property, BHP_const_nat_ge2]
-  use (left_lim pp)
-  constructor
-  · exact (by linarith [(left_gt_1 pp this), (left_le_sup pp (fun n ↦ aux' n) 1)])
-  · intro k h
-    rw [left_floor_eq_seq pp (fun n ↦ (hpp n).left) (fun n ↦ aux' n) k, ← Nat.succ_pred_eq_of_pos h]
-    exact (hpp k.pred).right.right.right
-    exact h
-
 def W := {x | Mills x}
 
 noncomputable def A : ℝ := sInf W
 
-lemma hh₁ : IsGLB W (sInf W) := Real.is_glb_sInf W exists_Mills ⟨1, fun _ ha ↦ le_of_lt ha.1⟩
+lemma hh₁ : IsGLB W (sInf W) := Real.isGLB_sInf exists_Mills ⟨1, fun _ ha ↦ le_of_lt ha.1⟩
 
 lemma A_lb : ∀ B ∈ W, A ≤ B := fun _ hB ↦ hh₁.left hB
 
@@ -494,7 +124,7 @@ lemma pk_str_mono : ∀ n, p (n + 1) < p (n + 2) := by
     _ ≤ A ^ 3 ^ (n + 1) * A ^ 3 ^ (n + 1) * A ^ 3 ^ (n + 1) := by
       apply (mul_le_mul_left _).2 (by linarith [Apow_ge_2 (n + 1) (by norm_num)])
       apply mul_pos <;> linarith [A_pow_gt_one (3 ^ (n + 1)) (by norm_num)]
-    _ = A ^ 3 ^ (n + 2) := by group
+    _ = A ^ 3 ^ (n + 2) := by ring
   exact floor_lt_diff_1 (A ^ 3 ^ (n + 1)) (A ^ 3 ^ (n + 2)) (A_pow_nonneg (3 ^ (n + 1))) this
 
 lemma pk_ge_k (k : ℕ) : k + 1 ≤ p (k + 1) := by
@@ -536,7 +166,7 @@ lemma lem6 : ∀ k : ℕ, 0 < k → (p' k) ^ ((Nat.cast : ℕ → ℝ) 3) ≤ p'
           _ = A ^ (3 ^ (k + 1)) := by rw [Real.rpow_natCast]; ring
   have hh : p' k ^ ((Nat.cast : ℕ → ℝ) 3) = Nat.floor (p' k ^ ((Nat.cast : ℕ → ℝ) 3)) := by
     have hh₀ : p' k ^ ((Nat.cast : ℕ → ℝ) 3) = (Nat.cast : ℕ → ℝ) (p k ^ 3) := by rw [p']; simp; rw [← Real.rpow_natCast]; simp
-    have hh₂ : Nat.floor ((Nat.cast : ℕ → ℝ) (p k ^ 3)) = p k ^ 3 := Nat.floor_coe (p k ^ 3)
+    have hh₂ : Nat.floor ((Nat.cast : ℕ → ℝ) (p k ^ 3)) = p k ^ 3 := Nat.floor_natCast (p k ^ 3)
     have hh₃ : (Nat.cast : ℕ → ℝ) (p k ^ 3) = p' k ^ ((Nat.cast : ℕ → ℝ) 3) := by rw [p']; simp; rw [← Real.rpow_natCast]; simp
     have hh₄ : (Nat.cast : ℕ → ℝ) (p k ^ 3) = (Nat.cast : ℕ → ℝ) (Nat.floor (p' k ^ ((Nat.cast : ℕ → ℝ) 3))) := by
       apply (Natcast_inj _ _).2
@@ -548,7 +178,9 @@ lemma lem6 : ∀ k : ℕ, 0 < k → (p' k) ^ ((Nat.cast : ℕ → ℝ) 3) ≤ p'
   have h₃ : p' k ^ ((Nat.cast : ℕ → ℝ) 3) ≤ p' (k + 1) := by
       calc
         p' k ^ ((Nat.cast : ℕ → ℝ) 3) = Nat.floor (p' k ^ ((Nat.cast : ℕ → ℝ) 3)) := hh
-        _ ≤ Nat.floor (A ^ (3 ^ (k + 1))) := Nat.cast_le.2 (Nat.floor_le_floor (p' k ^ 3) (A ^ (3 ^ (k + 1))) h₂)
+        _ ≤ Nat.floor (A ^ (3 ^ (k + 1))) := by
+          apply Nat.cast_le.2
+          exact Nat.floor_le_floor h₂
         _ = p' (k + 1) := rfl
   have h₄ : A ^ (3 ^ (k + 1)) < (p' k + 1) ^ ((Nat.cast : ℕ → ℝ) 3) := by
     calc
@@ -641,21 +273,11 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
   let q₀ : ℕ → ℕ
   | 0 => 1
   | (n + 1) => if n + 1 ≤ k then p (n + 1) else qq ⟨p k, h'⟩ ((n + 1) - k)
-  -- have q₀_eq_q (n : ℕ) (npos : 0 < n) : q₀ n = q n := by
-  --   cases n
-  --   case zero => linarith
-  --   case succ => dsimp [q, q₀]
   have h_q_le_k (n : ℕ) (_ : 0 < n) : n ≤ k → q n = p n := by
     intro hn
     dsimp [q]
     split_ifs
     rfl
-  -- have h_q_gt_k : ∀ n, k < n → q n = qq ⟨p k, h'⟩ (n - k) := by
-  --   intro n hn
-  --   dsimp [q]
-  --   split_ifs
-  --   · linarith
-  --   · rfl
   let C' : ℝ := left_lim q
   have h_q_left : (n : ℕ) → q n ^ 3 ≤ q (n + 1) := by
     intro n
@@ -674,7 +296,7 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
         exact hA₀
       have hA₂ : Nat.floor ((Nat.cast : ℕ → ℝ) (Nat.floor A) ^ (Nat.cast : ℕ → ℝ) 3) = (Nat.floor A) ^ 3 := by
         rw [← cast_nat_pow_eq_rpow_cast]
-        rw [Nat.floor_coe]
+        rw [Nat.floor_natCast]
         simp
       rw [hA₂] at hA₁
       rw [Real.rpow_natCast] at hA₁
@@ -735,7 +357,7 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
             simp
             rw [Int.floor_pos]
             linarith
-          have : ↑⌊A⌋ * Int.fract A ^ 2 * 3 < ↑⌊A⌋ * 3 := by rw [mul_assoc, mul_comm _ 3, ← mul_assoc]; apply mul_lt_of_lt_one_right _ _; linarith; rw [sq_lt_one_iff]; exact hh; simp
+          have : ↑⌊A⌋ * Int.fract A ^ 2 * 3 < ↑⌊A⌋ * 3 := by rw [mul_assoc, mul_comm _ 3, ← mul_assoc]; apply mul_lt_of_lt_one_right _ _; linarith; rw [sq_lt_one_iff₀]; exact hh; simp
           have : ↑⌊A⌋ ^ 2 * Int.fract A * 3 < ↑⌊A⌋ ^ 2 * 3 := by rw [mul_assoc, mul_comm _ 3, ← mul_assoc]; apply mul_lt_of_lt_one_right _ hh; nlinarith
           have : Int.fract A ^ 3 < 1 := by nlinarith
           linarith
@@ -793,9 +415,8 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
         exact (hqq' ⟨p k, h'⟩ (n + 1 - k)).right.right.left
         linarith
   have q1_gt_1 : 1 < q 1 := by rw [h_q_le_k 1 (by linarith) (by linarith)]; apply pgt1 1; norm_num
---  have mono_left_q : Monotone (seq_left q) := by exact mono_left q h_q_left
   have C'_floor (n : ℕ) (npos : 0 < n) : Nat.floor (C' ^ 3 ^ n) = q n := by
-    apply left_floor_eq_seq q h_q_left h_q_right n npos
+    apply left_floor_eq_seq _ _ npos h_q_left
   have C'_gt_1 : 1 < C' := by
     dsimp [C']
     apply left_lim_gt_1 q q1_gt_1 h_q_right
@@ -812,9 +433,9 @@ lemma prop5 : ∃ k₀, ∀ k, k₀ ≤ k → p' k ^ ((Nat.cast : ℕ → ℝ) 3
     constructor
     · exact C'_gt_1
     · intro n hn
-      rw [left_floor_eq_seq q h_q_left h_q_right n, ← Nat.succ_pred_eq_of_pos hn]
-      exact Prime_q n.pred.succ (by linarith)
-      exact hn
+      rw [left_floor_eq_seq _ _ hn]
+      apply Prime_q n hn
+      exact h_q_left
   have C'ltA : C' < A := by
     have hh₀ : Nat.floor (C' ^ 3 ^ (k + 1)) = q (k + 1) := by apply C'_floor; simp
     have hh₁ : q (k + 1) < p (k + 1) := by
@@ -872,7 +493,7 @@ lemma lem7' (a : ℝ) (apos : 0 < a) : (1 + a) ^ ((1 : ℝ) / 3) ≤ a / 3 + 1 :
     _ = f' c * a := by field_simp [hc₂]
     _ = (1 + c) ^ (-(2 : ℝ) / 3) * a / 3 := by dsimp [f']; ring_nf
     _ ≤ a / 3 := by
-      rw [div_le_div_right (by norm_num), mul_le_iff_le_one_left apos]
+      rw [div_le_div_iff_of_pos_right (by norm_num), mul_le_iff_le_one_left apos]
       apply Real.rpow_le_one_of_one_le_of_nonpos (by linarith [hc₁.left]) (by linarith)
 
 --似たようなことをやってる
@@ -961,8 +582,9 @@ lemma lem7 : ∃ γ > 0, ∃ k₁ > 1, ∀ k, k₁ ≤ k → |A ^ ((3 : ℝ) ^ k
               apply Real.rpow_nonneg (by linarith [pgt1' k (by linarith)]) _
         have hh₆ : (A ^ (3 : ℝ) ^ (k + 1)) ^ ((1 : ℝ) / 3) ≤ p' k * (1 + 2 * (p' k) ^ (3 * (θ - 1))) ^ ((1 : ℝ) / 3) := by linarith [hh₄, hh₅]
         have hh₇ : (A ^ (3 : ℝ) ^ (k + 1)) ^ ((1 : ℝ) / 3) = A ^ ((3 : ℝ) ^ k) := by
-          rw [← Real.rpow_natCast _ (k + 1), ← Real.rpow_mul (by linarith [A_pow_nonneg 1]), Nat.cast_add, Real.rpow_add_nat (by linarith)]
+          rw [pow_add, ← Real.rpow_mul]
           simp
+          linarith [Mills_gt_one]
         rw [← hh₇]
         exact hh₆
       have h₅ : (1 + 2 * (p' k) ^ (3 * (θ - 1))) ^ ((1 : ℝ) / 3) ≤ 1 + (p' k) ^ (3 * (θ - 1)) := by
@@ -1051,7 +673,7 @@ lemma A_not_nat : ∀ n : ℕ, A ≠ n := by
   intro n h
   have : p 1 = n ^ 3 :=  by
     simp [p, h]
-    rw [← Real.rpow_natCast, ← cast_nat_pow_eq_rpow_cast, Nat.floor_coe]; simp
+    rw [← Real.rpow_natCast, ← cast_nat_pow_eq_rpow_cast, Nat.floor_natCast]; simp
   have : ¬Nat.Prime (p 1) := by rw [this]; exact Nat.Prime.not_prime_pow (by simp)
   have : Nat.Prime (p 1) := prime_seq' 1 (by linarith)
   contradiction
@@ -1083,7 +705,10 @@ theorem Mills_irrational : Irrational A := by
   have h₅ : K ≤ 3 ^ k := by
     calc
       K ≤ k := le_max_left K k₁
-      _ ≤ 3 ^ k := by apply le_of_lt (Nat.lt_pow_self (by norm_num) k)
+      _ ≤ 3 ^ k := by
+        apply le_of_lt
+        apply Nat.lt_pow_self
+        norm_num
   have h₆ : min_dist (r ^ 3 ^ k) > Real.exp (-γ * 3 ^ k) := by
     have : Nat.pow 3 k = (3 : ℝ) ^ k := by simp -- 抽象化
     calc

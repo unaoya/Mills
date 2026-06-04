@@ -1,4 +1,3 @@
-import Mills.Basic
 import Mills.Defs
 import Mills.Mills
 import Mills.lem6

@@ -21,51 +21,57 @@ lemma not_prime (n : ℕ+) (nge2 : 2 ≤ n) : ¬Nat.Prime (pnat_cube (n + 1) - 1
   rw [this]
   apply not_prime' n.val nge2
 
+lemma pnpow_mul (x : ℝ≥0) (m n : ℕ+) : x ^ (m * n) = (x ^ m) ^ n := by
+  sorry
+
 lemma lem6_left (k : ℕ+) (x : ℝ≥0) (_ : Mills x) :
     pnat_cube (Mills_seq x k) ≤ (Mills_seq x (k + 1)) := by
-  have h₀ : Mills_seq x k ≤ x.pnpow (pnat_cube k) := by
-    dsimp [Mills_seq]
-    apply Nat.floor_le (by simp)
-  have h₁ : pnat_cube (Mills_seq x k) ≤ x.pnpow (pnat_cube (k + 1)) := by
-    rw [pnat_cube_succ, pnpow, pnat_cube_val]
+  have h₁ : pnat_cube (Mills_seq x k) ≤ x ^ (pnat_cube (k + 1)) := by
+    rw [pnat_cube_succ, pnat_cube_val]
     simp
-    rw [pow_mul]
-    apply pow_le_pow_left₀ (by simp) h₀
-  have h₂ : Mills_seq x (k + 1) = Nat.floor (x.pnpow (pnat_cube (k + 1))) := by
-    dsimp [Mills_seq, pnpow]
-  rw [← Nat.le_floor_iff (by simp), ← h₂] at h₁
+    rw [pnpow_mul]
+    apply pow_le_pow_left₀
+    simp
+    apply Nat.floor_le
+    simp
+  rw [← Nat.le_floor_iff (by simp)] at h₁
   exact h₁
 
-lemma lem6_right (k : ℕ+) (x : ℝ≥0) (xm : Mills x) :
+lemma lem6_right (k : ℕ+) (x : ℝ≥0) (hx : x > 1) (xm : Mills x) :
     (Mills_seq x (k + 1)) + 1 < pnat_cube (Mills_seq x k + 1) := by
-  have h₀ : x.pnpow (pnat_cube k) < Mills_seq x k + 1 := by
-    dsimp [Mills_seq]
-    apply Nat.lt_floor_add_one
-  have h₁ : x.pnpow (pnat_cube (k + 1)) < pnat_cube (Mills_seq x k + 1) := by
-    rw [pnat_cube_succ, pnpow, pnat_cube_val (Mills_seq x k + 1)]
+  have h₁ : x ^ (pnat_cube (k + 1)) < pnat_cube (Mills_seq x k + 1) := by
+    rw [pnat_cube_succ, pnat_cube_val (Mills_seq x k + 1)]
     simp
-    rw [pow_mul]
-    apply pow_lt_pow_left₀ h₀ (by simp) (by simp)
-  have h₂ : Mills_seq x (k + 1) = Nat.floor (x.pnpow (pnat_cube (k + 1))) := by
-    dsimp [Mills_seq, pnpow]
-  have h₃ : Nat.floor (x.pnpow (pnat_cube (k + 1))) < pnat_cube (Mills_seq x k + 1) := by
-    calc
-      Nat.floor (x.pnpow (pnat_cube (k + 1))) ≤ x.pnpow (pnat_cube (k + 1)) := by
-        sorry
-      _ < pnat_cube (Mills_seq x k + 1) := h₁
+    rw [pnpow_mul]
+    apply pow_lt_pow_left₀
+    apply Nat.lt_floor_add_one
+    simp
+    simp
+  -- have h₃ : Nat.floor (x ^ (pnat_cube (k + 1))) < pnat_cube (Mills_seq x k + 1) := by
+  --   calc
+  --     Nat.floor (x ^ (pnat_cube (k + 1))) ≤ x ^ (pnat_cube (k + 1)) := by
+  --       sorry
+  --     _ < pnat_cube (Mills_seq x k + 1) := h₁
   have h₄ : Mills_seq x (k + 1) + 1 ≤ pnat_cube (Mills_seq x k + 1) := by
     sorry
+    -- calc
+    --   Mills_seq x (k + 1) + 1 = Nat.floor (x ^ (pnat_cube (k + 1))) + 1 := by
+    --     dsimp [Mills_seq]
+    --   _ ≤ x ^ (pnat_cube (k + 1)) + 1 := by
+    --     apply Nat.le_succ_of_floor
+    --   _ < pnat_cube (Mills_seq x k + 1) + 1 := by
+    --     exact h₁
   have h₅ : Mills_seq x (k + 1) + 1 ≠ pnat_cube (Mills_seq x k + 1) := by
     intro h
     have : (Mills_seq x (k + 1) + 1).val = (pnat_cube (Mills_seq x k + 1)).val := by rw [h]
     simp at this
-    have : ↑(Mills_seq x (k + 1)) = ↑(pnat_cube (Mills_seq x k + 1)) - 1 := Nat.eq_sub_of_add_eq this
-    apply not_prime (Mills_seq x k) (Mills_seq_ge_2 x k xm)
+    have : (Mills_seq x (k + 1)).val = (pnat_cube (Mills_seq x k + 1)) - 1 := Nat.eq_sub_of_add_eq this
+    apply not_prime (Mills_seq x k) (Mills_seq_ge_2 x hx k xm)
     rw [← this]
     exact xm.right (k + 1)
   exact lt_of_le_of_ne h₄ h₅
 
 -- 引き算したくないので移項する
-lemma lem6 (k : ℕ+) (x : ℝ≥0) (xm : Mills x) :
+lemma lem6 (k : ℕ+) (x : ℝ≥0) (hx : x > 1)  (xm : Mills x) :
     pnat_cube (Mills_seq x k) ≤ (Mills_seq x (k + 1)) ∧ (Mills_seq x (k + 1)) + 1 < pnat_cube (Mills_seq x k + 1) :=
-  ⟨lem6_left k x xm, lem6_right k x xm⟩
+  ⟨lem6_left k x xm, lem6_right k x hx xm⟩
